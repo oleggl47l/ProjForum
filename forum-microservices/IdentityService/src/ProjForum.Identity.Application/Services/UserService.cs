@@ -1,7 +1,7 @@
 ﻿using MassTransit;
+using Microsoft.AspNetCore.Identity;
 using ProjForum.Identity.Domain.Entities;
 using ProjForum.Identity.Domain.Interfaces;
-using Microsoft.AspNetCore.Identity;
 using SharedModels;
 
 namespace ProjForum.Identity.Application.Services;
@@ -24,7 +24,7 @@ public class UserService(IPublishEndpoint publishEndpoint, UserManager<User> use
             await publishEndpoint.Publish(userStatusChangedEvent);
         }
     }
-    
+
     public async Task NotifyUserDeleted(string userId)
     {
         var user = await userManager.FindByIdAsync(userId);

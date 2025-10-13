@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ProjForum.Identity.Application.Identity.Queries;
+using ProjForum.Identity.Application.Identity.Queries.Auth;
+using ProjForum.Identity.Application.Identity.Queries.Auth.Login;
 using ProjForum.Identity.Domain.Exceptions;
 
 namespace ProjForum.Identity.Api.Controllers.V1;

@@ -28,9 +28,9 @@ public class JwtTokenGenerator(IConfiguration configuration) : IJwtGenerator
             claims.Add(new Claim(ClaimTypes.Role, role));
 
         var token = new JwtSecurityToken(
-            issuer: jwtSettings["Issuer"],
-            audience: jwtSettings["Audience"],
-            claims: claims,
+            jwtSettings["Issuer"],
+            jwtSettings["Audience"],
+            claims,
             expires: DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["TokenLifetimeMinutes"])),
             signingCredentials: creds);
 

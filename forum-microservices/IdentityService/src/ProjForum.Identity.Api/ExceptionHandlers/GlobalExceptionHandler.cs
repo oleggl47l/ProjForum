@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using ProjForum.Identity.Domain.Exceptions;
+using ValidationException = FluentValidation.ValidationException;
 
 namespace ProjForum.Identity.Api.ExceptionHandlers;
 
 public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
-    public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+    public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception,
+        CancellationToken cancellationToken)
     {
         var problemDetails = new ProblemDetails
         {
@@ -17,7 +19,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 
         switch (exception)
         {
-            case FluentValidation.ValidationException  fluentException:
+            case ValidationException fluentException:
                 problemDetails.Title = "one or more validation errors occurred.";
                 problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
                 httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;

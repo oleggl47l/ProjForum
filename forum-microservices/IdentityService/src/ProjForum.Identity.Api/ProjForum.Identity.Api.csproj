@@ -4,43 +4,39 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-      <UserSecretsId>bf39524b-bf1e-4e35-aa54-877d6934f1a8</UserSecretsId>
-      <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-  </PropertyGroup>
+        <UserSecretsId>bf39524b-bf1e-4e35-aa54-877d6934f1a8</UserSecretsId>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.4-develop.2148" />
-        <PackageReference Include="MediatR" Version="12.4.1" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.2" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
+        <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.4-develop.2148"/>
+        <PackageReference Include="MediatR" Version="12.4.1"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.2"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Serilog" Version="4.1.1-dev-02318" />
-        <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
-        <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.4" />
-        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+        <PackageReference Include="Serilog" Version="4.1.1-dev-02318"/>
+        <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0"/>
+        <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.4"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\SharedModels\SharedModels\SharedModels.csproj" />
-        <ProjectReference Include="..\ProjForum.Identity.Application\ProjForum.Identity.Application.csproj" />
-        <ProjectReference Include="..\ProjForum.Identity.Infrastructure\ProjForum.Identity.Infrastructure.csproj" />
-        <ProjectReference Include="..\ProjForum.Identity.Application\ProjForum.Identity.Application.csproj" />
-        <ProjectReference Include="..\ProjForum.Identity.Infrastructure\ProjForum.Identity.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\..\SharedModels\SharedModels\SharedModels.csproj"/>
+        <ProjectReference Include="..\ProjForum.Identity.Application\ProjForum.Identity.Application.csproj"/>
+        <ProjectReference Include="..\ProjForum.Identity.Infrastructure\ProjForum.Identity.Infrastructure.csproj"/>
+        <ProjectReference Include="..\ProjForum.Identity.Application\ProjForum.Identity.Application.csproj"/>
+        <ProjectReference Include="..\ProjForum.Identity.Infrastructure\ProjForum.Identity.Infrastructure.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Requests\V1\" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Content Include="..\..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
 </Project>

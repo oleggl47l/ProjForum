@@ -1,9 +1,9 @@
-﻿using ProjForum.Identity.Domain.Entities;
-using ProjForum.Identity.Domain.Interfaces;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ProjForum.Identity.Domain.Entities;
+using ProjForum.Identity.Domain.Interfaces;
 
 namespace ProjForum.Identity.Application.Services;
 
@@ -21,7 +21,7 @@ public class UnblockUsersBackgroundService(
                 using var scope = serviceScopeFactory.CreateScope();
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
                 var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-                
+
                 var users = userManager.Users.Where(u => !u.Active).ToList();
 
                 foreach (var user in users)

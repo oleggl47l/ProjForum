@@ -1,8 +1,15 @@
-﻿using ProjForum.Identity.Application.Identity.Commands.User;
-using ProjForum.Identity.Application.Identity.Queries.User;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-
+using ProjForum.Identity.Application.Identity.Commands.Users.AddRoleToUser;
+using ProjForum.Identity.Application.Identity.Commands.Users.BlockUser;
+using ProjForum.Identity.Application.Identity.Commands.Users.CreateUser;
+using ProjForum.Identity.Application.Identity.Commands.Users.DeleteUser;
+using ProjForum.Identity.Application.Identity.Commands.Users.RemoveRoleFromUser;
+using ProjForum.Identity.Application.Identity.Commands.Users.UnblockUser;
+using ProjForum.Identity.Application.Identity.Commands.Users.UpdateUser;
+using ProjForum.Identity.Application.Identity.Queries.Users.GetAllUsers;
+using ProjForum.Identity.Application.Identity.Queries.Users.GetUser;
+using ProjForum.Identity.Application.Identity.Queries.Users.GetUsersByRoleId;
 
 namespace ProjForum.Identity.Api.Controllers.V1;
 

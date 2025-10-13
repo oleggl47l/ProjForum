@@ -1,6 +1,6 @@
-﻿using ProjForum.Identity.Domain.Entities;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using ProjForum.Identity.Domain.Entities;
 
 namespace ProjForum.Identity.Infrastructure.Data;
 

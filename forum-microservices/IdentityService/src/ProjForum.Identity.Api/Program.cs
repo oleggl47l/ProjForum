@@ -1,14 +1,16 @@
 using System.Reflection;
 using System.Text;
 using MassTransit;
-using ProjForum.Identity.Api.ExceptionHandlers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using ProjForum.Identity.Api.ExceptionHandlers;
 using ProjForum.Identity.Application.Extensions;
 using ProjForum.Identity.Application.Identity.Queries;
+using ProjForum.Identity.Application.Identity.Queries.Auth;
+using ProjForum.Identity.Application.Identity.Queries.Auth.Login;
 using ProjForum.Identity.Application.Services;
 using ProjForum.Identity.Domain.Entities;
 using ProjForum.Identity.Domain.Interfaces;
@@ -159,7 +161,7 @@ app.UseExceptionHandler();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate();  
+    dbContext.Database.Migrate();
 }
 
 app.Run();
