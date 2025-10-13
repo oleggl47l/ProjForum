@@ -15,6 +15,7 @@ using ProjForum.Identity.Application.Services;
 using ProjForum.Identity.Domain.Entities;
 using ProjForum.Identity.Domain.Interfaces;
 using ProjForum.Identity.Infrastructure.Data;
+using ProjForum.Identity.Infrastructure.Data.Extensions;
 using ProjForum.Identity.Infrastructure.Security;
 using Serilog;
 using SharedModels;
@@ -24,8 +25,8 @@ var configuration = builder.Configuration;
 
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(configuration.GetConnectionString("PFIdentity")));
+builder.Services.AddDatabase(configuration);
+builder.Services.AddDataSeeding();
 
 Console.WriteLine("\n\n\nDatabase Connection String: " + configuration.GetConnectionString("PFIdentity") + "\n\n\n");
 
@@ -143,6 +144,16 @@ builder.Host.UseSerilog();
 
 var app = builder.Build();
 
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.Migrate();
+}
+
+await app.SeedDataAsync();
+
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -157,11 +168,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.UseExceptionHandler();
-
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate();
-}
 
 app.Run();
