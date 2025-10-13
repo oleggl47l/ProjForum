@@ -20,7 +20,7 @@ public class UnblockUsersBackgroundService(
             {
                 using var scope = serviceScopeFactory.CreateScope();
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-                var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+                var userService = scope.ServiceProvider.GetRequiredService<IUserNotificationService>();
 
                 var users = userManager.Users.Where(u => !u.Active).ToList();
 

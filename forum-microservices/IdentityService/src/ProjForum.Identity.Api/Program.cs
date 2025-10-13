@@ -50,7 +50,7 @@ builder.Services.AddScoped<IJwtGenerator, JwtTokenGenerator>();
 
 builder.Services.AddHostedService<UnblockUsersBackgroundService>();
 
-builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserNotificationService, UserNotificationNotificationService>();
 
 builder.Services.AddApplication();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

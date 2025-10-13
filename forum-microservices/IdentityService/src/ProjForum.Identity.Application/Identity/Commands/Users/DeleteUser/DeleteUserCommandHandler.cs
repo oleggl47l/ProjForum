@@ -5,7 +5,7 @@ using ProjForum.Identity.Domain.Interfaces;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Users.DeleteUser;
 
-public class DeleteUserCommandHandler(UserManager<Domain.Entities.User> userManager, IUserService userService)
+public class DeleteUserCommandHandler(UserManager<Domain.Entities.User> userManager, IUserNotificationService userNotificationService)
     : IRequestHandler<DeleteUserCommand, bool>
 {
     public async Task<bool> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
@@ -16,7 +16,7 @@ public class DeleteUserCommandHandler(UserManager<Domain.Entities.User> userMana
             throw new NotFoundException($"User with id {request.UserId} could not be found.");
 
         var result = await userManager.DeleteAsync(user);
-        await userService.NotifyUserDeleted(user.Id);
+        await userNotificationService.NotifyUserDeleted(user.Id);
         return result.Succeeded;
     }
 }

@@ -6,7 +6,7 @@ using SharedModels;
 
 namespace ProjForum.Identity.Application.Services;
 
-public class UserService(IPublishEndpoint publishEndpoint, UserManager<User> userManager) : IUserService
+public class UserNotificationNotificationService(IPublishEndpoint publishEndpoint, UserManager<User> userManager) : IUserNotificationService
 {
     public async Task NotifyUserStatusChanged(string userId)
     {

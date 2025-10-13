@@ -7,7 +7,7 @@ namespace ProjForum.Identity.Application.Identity.Commands.Users.UnblockUser;
 
 public class UnblockUserCommandHandler(
     UserManager<Domain.Entities.User> userManager,
-    IUserService userService) : IRequestHandler<UnblockUserCommand, Unit>
+    IUserNotificationService userNotificationService) : IRequestHandler<UnblockUserCommand, Unit>
 {
     public async Task<Unit> Handle(UnblockUserCommand request, CancellationToken cancellationToken)
     {
@@ -20,7 +20,7 @@ public class UnblockUserCommandHandler(
         user.Active = true;
         await userManager.UpdateAsync(user);
 
-        await userService.NotifyUserStatusChanged(user.Id);
+        await userNotificationService.NotifyUserStatusChanged(user.Id);
 
         return Unit.Value;
     }

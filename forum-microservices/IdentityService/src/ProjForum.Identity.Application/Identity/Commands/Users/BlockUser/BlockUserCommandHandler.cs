@@ -7,7 +7,7 @@ namespace ProjForum.Identity.Application.Identity.Commands.Users.BlockUser;
 
 public class BlockUserCommandHandler(
     UserManager<Domain.Entities.User> userManager,
-    IUserService userService) : IRequestHandler<BlockUserCommand, Unit>
+    IUserNotificationService userNotificationService) : IRequestHandler<BlockUserCommand, Unit>
 {
     public async Task<Unit> Handle(BlockUserCommand request, CancellationToken cancellationToken)
     {
@@ -23,7 +23,7 @@ public class BlockUserCommandHandler(
         await userManager.SetLockoutEnabledAsync(user, true);
         await userManager.SetLockoutEndDateAsync(user, lockoutEndTime);
 
-        await userService.NotifyUserStatusChanged(user.Id);
+        await userNotificationService.NotifyUserStatusChanged(user.Id);
 
         return Unit.Value;
     }
