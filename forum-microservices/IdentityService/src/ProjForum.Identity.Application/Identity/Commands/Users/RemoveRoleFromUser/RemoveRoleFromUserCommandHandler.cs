@@ -1,28 +1,28 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Identity;
-using ProjForum.Identity.Domain.Exceptions;
+using ProjForum.Identity.Application.DTOs;
+using ProjForum.Identity.Domain.Interfaces.Repositories;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Users.RemoveRoleFromUser;
 
-public class RemoveRoleFromUserCommandHandler(
-    UserManager<Domain.Entities.User> userManager,
-    RoleManager<Domain.Entities.Role> roleManager)
-    : IRequestHandler<RemoveRoleFromUserCommand, bool>
+public class RemoveRoleFromUserCommandHandler(IUserRepository userRepository, IRoleRepository roleRepository)
+    : IRequestHandler<RemoveRoleFromUserCommand, OperationResultDto>
 {
-    public async Task<bool> Handle(RemoveRoleFromUserCommand request, CancellationToken cancellationToken)
+    public async Task<OperationResultDto> Handle(RemoveRoleFromUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByIdAsync(request.UserId);
-        if (user == null)
-            throw new NotFoundException($"User with id {request.UserId} not found");
+        var user = await userRepository.GetByIdAsync(request.UserId, cancellationToken)
+                   ?? throw new KeyNotFoundException("User not found");
 
-        var roleExists = await roleManager.RoleExistsAsync(request.RoleName);
-        if (!roleExists)
-            throw new NotFoundException($"Role with name {request.RoleName} not found");
+        _ = await roleRepository.GetByNameAsync(request.RoleName, cancellationToken)
+            ?? throw new KeyNotFoundException($"Role '{request.RoleName}' not found");
 
-        var result = await userManager.RemoveFromRoleAsync(user, request.RoleName);
-        if (!result.Succeeded)
-            throw new InvalidOperationException("Failed to remove role to user");
+        var userRoles = await userRepository.GetRolesAsync(user, cancellationToken);
+        if (!userRoles.Contains(request.RoleName))
+            throw new InvalidOperationException($"User does not have role '{request.RoleName}'");
 
-        return result.Succeeded;
+        if (userRoles.Count <= 1)
+            throw new InvalidOperationException("User must have at least one role");
+
+        await userRepository.RemoveFromRoleAsync(user, request.RoleName, cancellationToken);
+        return new OperationResultDto(true, $"Role '{request.RoleName}' removed from user");
     }
 }

@@ -1,28 +1,26 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
+using ProjForum.Identity.Application.DTOs.User;
 using ProjForum.Identity.Domain.Exceptions;
-using ProjForum.Identity.Domain.Models;
+using ProjForum.Identity.Domain.Identities;
+using ProjForum.Identity.Domain.Interfaces.Repositories;
 
 namespace ProjForum.Identity.Application.Identity.Queries.Users.GetUsersByRoleId;
 
-public class GetUsersByRoleIdQueryHandler(
-    UserManager<Domain.Entities.User> userManager,
-    RoleManager<Domain.Entities.Role> roleManager) : IRequestHandler<GetUsersByRoleIdQuery, IEnumerable<UserModel>>
+public class GetUsersByRoleIdHandler(IUserRepository userRepository)
+    : IRequestHandler<GetUsersByRoleIdQuery, IReadOnlyList<UserDto>>
 {
-    public async Task<IEnumerable<UserModel>> Handle(GetUsersByRoleIdQuery request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<UserDto>> Handle(GetUsersByRoleIdQuery request, CancellationToken cancellationToken)
     {
-        var role = await roleManager.FindByIdAsync(request.RoleId);
-        if (role == null)
-            throw new NotFoundException($"Role with ID {request.RoleId} not found.");
+        var users = await userRepository.GetByRoleIdAsync(request.RoleId, cancellationToken);
 
-        var usersInRole = await userManager.GetUsersInRoleAsync(role.Name);
-
-        return usersInRole.Select(user => new UserModel
+        var result = new List<UserDto>();
+        foreach (var user in users)
         {
-            Id = user.Id,
-            UserName = user.UserName,
-            Email = user.Email,
-            Active = user.Active
-        });
+            var roles = await userRepository.GetRolesAsync(user, cancellationToken);
+            result.Add(new UserDto(user.Id, user.UserName, user.Email, user.Active, user.AccessFailedCount, roles));
+        }
+
+        return result;
     }
 }

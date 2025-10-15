@@ -1,30 +1,21 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Identity;
-using ProjForum.Identity.Domain.Exceptions;
-using ProjForum.Identity.Domain.Interfaces;
+using ProjForum.Identity.Application.DTOs;
+using ProjForum.Identity.Domain.Interfaces.Repositories;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Users.BlockUser;
 
-public class BlockUserCommandHandler(
-    UserManager<Domain.Entities.User> userManager,
-    IUserNotificationService userNotificationService) : IRequestHandler<BlockUserCommand, Unit>
+public class BlockUserCommandHandler(IUserRepository userRepository)
+    : IRequestHandler<BlockUserCommand, OperationResultDto>
 {
-    public async Task<Unit> Handle(BlockUserCommand request, CancellationToken cancellationToken)
+    public async Task<OperationResultDto> Handle(BlockUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByIdAsync(request.UserId);
-        if (user == null)
-            throw new NotFoundException($"User with ID {request.UserId} not found");
+        var user = await userRepository.GetByIdAsync(request.UserId, cancellationToken)
+                   ?? throw new KeyNotFoundException("User not found");
+        
+        user.Deactivate();
 
-        var lockoutEndTime = DateTime.UtcNow.AddMinutes(request.TimeInMinutes);
+        await userRepository.BlockAsync(user, request.TimeInMinutes, cancellationToken);
 
-        user.Active = false;
-        await userManager.UpdateAsync(user);
-
-        await userManager.SetLockoutEnabledAsync(user, true);
-        await userManager.SetLockoutEndDateAsync(user, lockoutEndTime);
-
-        await userNotificationService.NotifyUserStatusChanged(user.Id);
-
-        return Unit.Value;
+        return new OperationResultDto(true, $"User blocked for {request.TimeInMinutes} minutes");
     }
 }

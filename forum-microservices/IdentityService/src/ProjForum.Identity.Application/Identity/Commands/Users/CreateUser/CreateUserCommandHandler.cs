@@ -1,61 +1,46 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Identity;
+using ProjForum.BuildingBlocks.Domain.Interfaces;
+using ProjForum.Identity.Application.DTOs;
+using ProjForum.Identity.Application.DTOs.User;
+using ProjForum.Identity.Domain.Identities;
+using ProjForum.Identity.Domain.Interfaces.Repositories;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Users.CreateUser;
 
 public class CreateUserCommandHandler(
-    UserManager<Domain.Entities.User> userManager,
-    RoleManager<Domain.Entities.Role> roleManager) : IRequestHandler<CreateUserCommand, Unit>
+    IUserRepository userRepository,
+    IRoleRepository roleRepository,
+    IUnitOfWork unitOfWork)
+    : IRequestHandler<CreateUserCommand, CreateUserResultDto>
 {
-    public async Task<Unit> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+    public async Task<CreateUserResultDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
-        var user = new Domain.Entities.User
+        if (await userRepository.GetByEmailAsync(request.Email, cancellationToken) is not null)
+            throw new InvalidOperationException("Email already in use");
+
+        if (await userRepository.GetByUserNameAsync(request.UserName, cancellationToken) is not null)
+            throw new InvalidOperationException("Username already in use");
+
+        foreach (var role in request.Roles)
         {
-            UserName = request.UserName,
-            Email = request.Email
-        };
-
-        var roles = await GetRolesByNames(request.RoleNames);
-        if (roles == null || !roles.Any())
-            throw new ArgumentException("One or more roles do not exist.");
-
-
-        var createResult = await userManager.CreateAsync(user, request.Password);
-        if (!createResult.Succeeded)
-        {
-            var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
-            throw new Exception($"Failed to create user: {errors}");
+            var existingRole = await roleRepository.GetByNameAsync(role, cancellationToken);
+            if (existingRole is null)
+                throw new KeyNotFoundException($"Role '{role}' not found");
         }
 
-        await AddRolesToUserAsync(user, request.RoleNames);
+        var user = User.Create(request.UserName, request.Email);
 
-        return Unit.Value;
-    }
-
-    private async Task<List<Domain.Entities.Role>> GetRolesByNames(IEnumerable<string> roleNames)
-    {
-        var roles = new List<Domain.Entities.Role>();
-
-        foreach (var roleName in roleNames)
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
-            var role = await roleManager.FindByNameAsync(roleName);
-            if (role == null)
-                throw new ArgumentException($"Role with name {roleName} does not exist.");
+            await userRepository.AddAsync(user, cancellationToken);
 
-            roles.Add(role);
-        }
+            foreach (var role in request.Roles)
+                await userRepository.AddToRoleAsync(user, role, cancellationToken);
+        }, cancellationToken);
 
-        return roles;
-    }
+        var roles = await userRepository.GetRolesAsync(user, cancellationToken);
+        var dto = new UserDto(user.Id, user.UserName, user.Email, user.Active, user.AccessFailedCount, roles);
 
-    private async Task AddRolesToUserAsync(Domain.Entities.User user,
-        List<string> roleNames)
-    {
-        foreach (var roleName in roleNames)
-        {
-            var addRoleResult = await userManager.AddToRoleAsync(user, roleName);
-            if (!addRoleResult.Succeeded)
-                throw new Exception($"Failed to add role {roleName} to user {user.UserName}");
-        }
+        return new CreateUserResultDto(new OperationResultDto(true, "User created successfully"), dto);
     }
 }

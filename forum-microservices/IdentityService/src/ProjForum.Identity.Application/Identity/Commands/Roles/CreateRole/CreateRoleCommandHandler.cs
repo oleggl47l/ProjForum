@@ -1,25 +1,27 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Identity;
+using ProjForum.BuildingBlocks.Domain.Interfaces;
+using ProjForum.Identity.Application.DTOs;
+using ProjForum.Identity.Application.DTOs.Role;
+using ProjForum.Identity.Domain.Identities;
+using ProjForum.Identity.Domain.Interfaces.Repositories;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Roles.CreateRole;
 
-public class CreateRoleCommandHandler(RoleManager<Domain.Entities.Role> roleManager)
-    : IRequestHandler<CreateRoleCommand, Unit>
+public class CreateRoleCommandHandler(IRoleRepository roleRepository, IUnitOfWork unitOfWork)
+    : IRequestHandler<CreateRoleCommand, CreateRoleResultDto>
 {
-    public async Task<Unit> Handle(CreateRoleCommand request, CancellationToken cancellationToken)
+    public async Task<CreateRoleResultDto> Handle(CreateRoleCommand request, CancellationToken cancellationToken)
     {
-        var role = new Domain.Entities.Role
-        {
-            Name = request.Name,
-            IsActive = request.IsActive,
-            ConcurrencyStamp = Guid.NewGuid().ToString()
-        };
+        var existing = await roleRepository.GetByNameAsync(request.Name, cancellationToken);
+        if (existing is not null)
+            throw new InvalidOperationException($"Role '{request.Name}' already exists");
 
-        var result = await roleManager.CreateAsync(role);
+        var role = Role.Create(request.Name, request.IsActive);
 
-        if (!result.Succeeded)
-            throw new InvalidOperationException("Failed to create role");
+        await roleRepository.AddAsync(role, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return Unit.Value;
+        var dto = new RoleDto(role.Id, role.Name, role.IsActive);
+        return new CreateRoleResultDto(new OperationResultDto(true, "Role created successfully"), dto);
     }
 }

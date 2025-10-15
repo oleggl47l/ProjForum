@@ -1,9 +1,6 @@
 ﻿using MediatR;
-using ProjForum.Identity.Domain.Models;
+using ProjForum.Identity.Application.DTOs.User;
 
 namespace ProjForum.Identity.Application.Identity.Queries.Users.GetUsersByRoleId;
 
-public class GetUsersByRoleIdQuery : IRequest<IEnumerable<UserModel>>
-{
-    public string RoleId { get; set; }
-}
+public record GetUsersByRoleIdQuery(Guid RoleId) : IRequest<IReadOnlyList<UserDto>>;

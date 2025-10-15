@@ -21,6 +21,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\..\SharedModels\SharedModels\SharedModels.csproj" />
         <ProjectReference Include="..\ProjForum.Identity.Domain\ProjForum.Identity.Domain.csproj" />
+        <ProjectReference Include="..\ProjForum.Identity.Infrastructure\ProjForum.Identity.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

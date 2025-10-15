@@ -1,28 +1,28 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Identity;
-using ProjForum.Identity.Domain.Exceptions;
+using ProjForum.Identity.Application.DTOs;
+using ProjForum.Identity.Domain.Interfaces.Repositories;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Users.AddRoleToUser;
 
 public class AddRoleToUserCommandHandler(
-    UserManager<Domain.Entities.User> userManager,
-    RoleManager<Domain.Entities.Role> roleManager)
-    : IRequestHandler<AddRoleToUserCommand, bool>
+    IUserRepository userRepository,
+    IRoleRepository roleRepository)
+    : IRequestHandler<AddRoleToUserCommand, OperationResultDto>
 {
-    public async Task<bool> Handle(AddRoleToUserCommand request, CancellationToken cancellationToken)
+    public async Task<OperationResultDto> Handle(AddRoleToUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByIdAsync(request.UserId);
-        if (user == null)
-            throw new NotFoundException("User not found");
+        var user = await userRepository.GetByIdAsync(request.UserId, cancellationToken)
+                   ?? throw new KeyNotFoundException("User not found");
 
-        var roleExists = await roleManager.RoleExistsAsync(request.RoleName);
-        if (!roleExists)
-            throw new NotFoundException("Role does not exist");
+        _ = await roleRepository.GetByNameAsync(request.RoleName, cancellationToken)
+            ?? throw new KeyNotFoundException($"Role '{request.RoleName}' not found");
 
-        var result = await userManager.AddToRoleAsync(user, request.RoleName);
-        if (!result.Succeeded)
-            throw new InvalidOperationException("Failed to add role to user");
+        var userRoles = await userRepository.GetRolesAsync(user, cancellationToken);
+        if (userRoles.Contains(request.RoleName))
+            throw new InvalidOperationException($"User already has role '{request.RoleName}'");
 
-        return result.Succeeded;
+        await userRepository.AddToRoleAsync(user, request.RoleName, cancellationToken);
+
+        return new OperationResultDto(true, $"Role '{request.RoleName}' added to user");
     }
 }

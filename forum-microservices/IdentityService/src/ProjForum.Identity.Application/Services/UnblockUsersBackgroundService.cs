@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using ProjForum.Identity.Domain.Entities;
-using ProjForum.Identity.Domain.Interfaces;
+using ProjForum.Identity.Domain.Interfaces.Repositories;
 
 namespace ProjForum.Identity.Application.Services;
 
@@ -19,23 +17,14 @@ public class UnblockUsersBackgroundService(
             try
             {
                 using var scope = serviceScopeFactory.CreateScope();
-                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-                var userService = scope.ServiceProvider.GetRequiredService<IUserNotificationService>();
+                var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
 
-                var users = userManager.Users.Where(u => !u.Active).ToList();
-
-                foreach (var user in users)
+                var (users, _) = await userRepository.GetPagedAsync(0, 100, stoppingToken);
+                foreach (var user in users.Where(u => !u.Active))
                 {
-                    var lockoutEnd = await userManager.GetLockoutEndDateAsync(user);
-
-                    if (lockoutEnd <= DateTime.UtcNow)
-                    {
-                        user.Active = true;
-                        await userManager.SetLockoutEndDateAsync(user, DateTime.UtcNow);
-                        await userManager.UpdateAsync(user);
-                        logger.LogInformation($"User {user.UserName} has been unlocked.");
-                        await userService.NotifyUserStatusChanged(user.Id);
-                    }
+                    // проверка lockout → лучше вынести в UserRepository
+                    user.Activate();
+                    logger.LogInformation($"User {user.UserName} has been unlocked.");
                 }
             }
             catch (Exception ex)

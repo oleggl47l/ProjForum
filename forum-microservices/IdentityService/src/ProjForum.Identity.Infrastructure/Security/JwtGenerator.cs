@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using ProjForum.Identity.Domain.Entities;
+using ProjForum.Identity.Domain.Identities;
 using ProjForum.Identity.Domain.Interfaces;
 
 namespace ProjForum.Identity.Infrastructure.Security;
@@ -19,7 +19,7 @@ public class JwtTokenGenerator(IConfiguration configuration) : IJwtGenerator
 
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, user.Id),
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email),
             new(ClaimTypes.Name, user.UserName)
         };

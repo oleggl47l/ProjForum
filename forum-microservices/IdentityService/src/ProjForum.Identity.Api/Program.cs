@@ -8,25 +8,21 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ProjForum.Identity.Api.ExceptionHandlers;
 using ProjForum.Identity.Application.Extensions;
-using ProjForum.Identity.Application.Identity.Queries;
-using ProjForum.Identity.Application.Identity.Queries.Auth;
-using ProjForum.Identity.Application.Identity.Queries.Auth.Login;
+using ProjForum.Identity.Application.Identity.Commands.Auth.Login;
 using ProjForum.Identity.Application.Services;
-using ProjForum.Identity.Domain.Entities;
+using ProjForum.Identity.Domain.Identities;
 using ProjForum.Identity.Domain.Interfaces;
-using ProjForum.Identity.Infrastructure.Data;
-using ProjForum.Identity.Infrastructure.Data.Extensions;
-using ProjForum.Identity.Infrastructure.Security;
+using ProjForum.Identity.Infrastructure.Messaging;
+using ProjForum.Identity.Infrastructure.Persistence;
+using ProjForum.Identity.Infrastructure.Persistence.Extensions;
 using Serilog;
-using SharedModels;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
-builder.Services.AddControllers();
+builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.Services.AddDatabase(configuration);
-builder.Services.AddDataSeeding();
+builder.Services.AddControllers();
 
 Console.WriteLine("\n\n\nDatabase Connection String: " + configuration.GetConnectionString("PFIdentity") + "\n\n\n");
 
@@ -44,14 +40,12 @@ builder.Services.AddIdentity<User, Role>(options =>
 builder.Services.AddMediatR(cfg =>
 {
     cfg.Lifetime = ServiceLifetime.Scoped;
-    cfg.RegisterServicesFromAssembly(typeof(LoginQuery).GetTypeInfo().Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(LoginCommand).GetTypeInfo().Assembly);
 });
-
-builder.Services.AddScoped<IJwtGenerator, JwtTokenGenerator>();
 
 builder.Services.AddHostedService<UnblockUsersBackgroundService>();
 
-builder.Services.AddScoped<IUserNotificationService, UserNotificationNotificationService>();
+builder.Services.AddScoped<IUserNotificationService, UserNotificationService>();
 
 builder.Services.AddApplication();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -131,7 +125,7 @@ builder.Services.AddMassTransit(x =>
         cfg.ConfigureEndpoints(context);
     });
 
-    x.AddRequestClient<UserStatusChangedEvent>();
+    // x.AddRequestClient<UserStatusChangedEvent>();
 });
 
 Log.Logger = new LoggerConfiguration()
@@ -151,8 +145,7 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 
-await app.SeedDataAsync();
-
+await app.UseIdentitySeedingAsync();
 
 if (app.Environment.IsDevelopment())
 {

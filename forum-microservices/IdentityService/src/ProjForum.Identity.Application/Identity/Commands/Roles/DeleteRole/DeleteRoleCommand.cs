@@ -1,9 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using MediatR;
+﻿using MediatR;
+using ProjForum.Identity.Application.DTOs;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Roles.DeleteRole;
 
-public class DeleteRoleCommand : IRequest<Unit>
-{
-    [Required] public string RoleId { get; init; } = null!;
-}
+public record DeleteRoleCommand(Guid Id) : IRequest<OperationResultDto>;

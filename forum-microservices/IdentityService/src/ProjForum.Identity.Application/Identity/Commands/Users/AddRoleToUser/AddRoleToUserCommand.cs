@@ -1,9 +1,6 @@
 ﻿using MediatR;
+using ProjForum.Identity.Application.DTOs;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Users.AddRoleToUser;
 
-public class AddRoleToUserCommand : IRequest<bool>
-{
-    public string UserId { get; set; }
-    public string RoleName { get; set; }
-}
+public record AddRoleToUserCommand(Guid UserId, string RoleName) : IRequest<OperationResultDto>;

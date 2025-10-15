@@ -1,27 +1,20 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Identity;
-using ProjForum.Identity.Domain.Exceptions;
-using ProjForum.Identity.Domain.Interfaces;
+using ProjForum.Identity.Application.DTOs;
+using ProjForum.Identity.Domain.Interfaces.Repositories;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Users.UnblockUser;
 
-public class UnblockUserCommandHandler(
-    UserManager<Domain.Entities.User> userManager,
-    IUserNotificationService userNotificationService) : IRequestHandler<UnblockUserCommand, Unit>
+public class UnblockUserCommandHandler(IUserRepository userRepository)
+    : IRequestHandler<UnblockUserCommand, OperationResultDto>
 {
-    public async Task<Unit> Handle(UnblockUserCommand request, CancellationToken cancellationToken)
+    public async Task<OperationResultDto> Handle(UnblockUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByIdAsync(request.UserId);
-        if (user == null)
-            throw new NotFoundException("User not found");
+        var user = await userRepository.GetByIdAsync(request.UserId, cancellationToken)
+                   ?? throw new KeyNotFoundException("User not found");
 
-        await userManager.SetLockoutEndDateAsync(user, DateTime.UtcNow);
+        user.Activate();
 
-        user.Active = true;
-        await userManager.UpdateAsync(user);
-
-        await userNotificationService.NotifyUserStatusChanged(user.Id);
-
-        return Unit.Value;
+        await userRepository.UnblockAsync(user, cancellationToken);
+        return new OperationResultDto(true, "User unblocked");
     }
 }

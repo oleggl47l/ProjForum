@@ -1,8 +1,6 @@
 ﻿using MediatR;
+using ProjForum.Identity.Application.DTOs;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Users.DeleteUser;
 
-public class DeleteUserCommand : IRequest<bool>
-{
-    public string UserId { get; set; }
-}
+public record DeleteUserCommand(Guid UserId) : IRequest<OperationResultDto>;

@@ -1,4 +1,4 @@
-﻿using ProjForum.Identity.Domain.Entities;
+﻿using ProjForum.Identity.Domain.Identities;
 
 namespace ProjForum.Identity.Domain.Interfaces;
 

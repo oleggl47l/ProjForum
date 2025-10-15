@@ -1,9 +1,6 @@
 ﻿using MediatR;
+using ProjForum.Identity.Application.DTOs;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Users.RemoveRoleFromUser;
 
-public class RemoveRoleFromUserCommand : IRequest<bool>
-{
-    public string UserId { get; set; }
-    public string RoleName { get; set; }
-}
+public record RemoveRoleFromUserCommand(Guid UserId, string RoleName) : IRequest<OperationResultDto>;

@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using MediatR;
+using ProjForum.Identity.Application.DTOs.User;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Users.CreateUser;
 
-public class CreateUserCommand : IRequest<Unit>
-{
-    [Required] public string UserName { get; set; }
-    [Required] public string Email { get; set; }
-    [Required] public string Password { get; set; }
-    [Required] public List<string> RoleNames { get; set; }
-}
+public record CreateUserCommand(
+    string UserName,
+    string Email,
+    string Password,
+    IEnumerable<string> Roles
+) : IRequest<CreateUserResultDto>;

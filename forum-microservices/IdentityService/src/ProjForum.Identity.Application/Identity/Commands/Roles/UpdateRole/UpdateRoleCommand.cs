@@ -1,14 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using MediatR;
-using ProjForum.Identity.Domain.Models;
+using ProjForum.Identity.Application.DTOs.Role;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Roles.UpdateRole;
 
-public class UpdateRoleCommand : IRequest<RoleModel>
-{
-    [Required] public string RoleId { get; set; } = null!;
-
-    public string? Name { get; set; }
-
-    public bool? IsActive { get; set; }
-}
+public record UpdateRoleCommand(Guid Id, string Name, bool IsActive) : IRequest<UpdateRoleResultDto>;

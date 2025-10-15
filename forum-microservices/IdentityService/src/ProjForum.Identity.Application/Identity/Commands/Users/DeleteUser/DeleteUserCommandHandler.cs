@@ -1,22 +1,22 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Identity;
-using ProjForum.Identity.Domain.Exceptions;
-using ProjForum.Identity.Domain.Interfaces;
+using ProjForum.BuildingBlocks.Domain.Interfaces;
+using ProjForum.Identity.Application.DTOs;
+using ProjForum.Identity.Domain.Interfaces.Repositories;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Users.DeleteUser;
 
-public class DeleteUserCommandHandler(UserManager<Domain.Entities.User> userManager, IUserNotificationService userNotificationService)
-    : IRequestHandler<DeleteUserCommand, bool>
+public class DeleteUserCommandHandler(IUserRepository userRepository, IUnitOfWork unitOfWork)
+    : IRequestHandler<DeleteUserCommand, OperationResultDto>
 {
-    public async Task<bool> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+    public async Task<OperationResultDto> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByIdAsync(request.UserId);
+        var user = await userRepository.GetByIdAsync(request.UserId, cancellationToken)
+                   ?? throw new KeyNotFoundException("User not found");
 
-        if (user == null)
-            throw new NotFoundException($"User with id {request.UserId} could not be found.");
+        user.MarkAsDeleted();
+        userRepository.Delete(user);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var result = await userManager.DeleteAsync(user);
-        await userNotificationService.NotifyUserDeleted(user.Id);
-        return result.Succeeded;
+        return new OperationResultDto(true, "User deleted");
     }
 }
