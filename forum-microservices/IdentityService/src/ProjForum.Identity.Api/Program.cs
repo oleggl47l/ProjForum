@@ -17,149 +17,159 @@ using ProjForum.Identity.Infrastructure.Persistence;
 using ProjForum.Identity.Infrastructure.Persistence.Extensions;
 using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
-var configuration = builder.Configuration;
-
-builder.Services.AddInfrastructure(builder.Configuration);
-
-builder.Services.AddControllers();
-
-Console.WriteLine("\n\n\nDatabase Connection String: " + configuration.GetConnectionString("PFIdentity") + "\n\n\n");
-
-
-builder.Services.AddIdentity<User, Role>(options =>
-    {
-        options.Lockout.MaxFailedAccessAttempts = 3;
-        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-        options.Lockout.AllowedForNewUsers = true;
-    })
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
-
-
-builder.Services.AddMediatR(cfg =>
-{
-    cfg.Lifetime = ServiceLifetime.Scoped;
-    cfg.RegisterServicesFromAssembly(typeof(LoginCommand).GetTypeInfo().Assembly);
-});
-
-builder.Services.AddHostedService<UnblockUsersBackgroundService>();
-
-builder.Services.AddScoped<IUserNotificationService, UserNotificationService>();
-
-builder.Services.AddApplication();
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddProblemDetails();
-
-builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddSwaggerGen(opt =>
-{
-    opt.SwaggerDoc("v1", new OpenApiInfo { Title = "PtojForumIdentityAPI", Version = "v1" });
-    opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        In = ParameterLocation.Header,
-        Description = "Enter JWT token",
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        BearerFormat = "JWT",
-        Scheme = "bearer"
-    });
-    opt.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            []
-        }
-    });
-});
-
-builder.Services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        }
-    )
-    .AddJwtBearer(options =>
-        {
-            options.SaveToken = true;
-            options.RequireHttpsMetadata = false;
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidAudience = builder.Configuration["JwtSettings:Audience"],
-                ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-                ClockSkew = TimeSpan.Zero,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                    builder.Configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException()))
-            };
-        }
-    );
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("User", policy => policy.RequireRole("User"));
-    options.AddPolicy("Editor", policy => policy.RequireRole("Editor"));
-});
-
-builder.Services.AddMassTransit(x =>
-{
-    x.UsingRabbitMq((context, cfg) =>
-    {
-        cfg.Host("rabbitmq://localhost", h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
-
-        cfg.ConfigureEndpoints(context);
-    });
-
-    // x.AddRequestClient<UserStatusChangedEvent>();
-});
-
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
-    .ReadFrom.Configuration(builder.Configuration)
-    .WriteTo.Console()
+    .ReadFrom.Configuration(new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json")
+        .Build()).WriteTo.Console()
     .CreateLogger();
-
-builder.Host.UseSerilog();
-
-var app = builder.Build();
-
-
-using (var scope = app.Services.CreateScope())
+try
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate();
+    var builder = WebApplication.CreateBuilder(args);
+    var configuration = builder.Configuration;
+
+    builder.Services.AddInfrastructure(builder.Configuration);
+
+    builder.Services.AddControllers();
+
+    Console.WriteLine("\n\n\nDatabase Connection String: " + configuration.GetConnectionString("PFIdentity") +
+                      "\n\n\n");
+
+
+    builder.Services.AddIdentity<User, Role>(options =>
+        {
+            options.Lockout.MaxFailedAccessAttempts = 3;
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+            options.Lockout.AllowedForNewUsers = true;
+        })
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
+
+
+    builder.Services.AddMediatR(cfg =>
+    {
+        cfg.Lifetime = ServiceLifetime.Scoped;
+        cfg.RegisterServicesFromAssembly(typeof(LoginCommand).GetTypeInfo().Assembly);
+    });
+
+    builder.Services.AddHostedService<UnblockUsersBackgroundService>();
+
+    builder.Services.AddScoped<IUserNotificationService, UserNotificationService>();
+
+    builder.Services.AddApplication();
+    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    builder.Services.AddProblemDetails();
+
+    builder.Services.AddEndpointsApiExplorer();
+
+    builder.Services.AddSwaggerGen(opt =>
+    {
+        opt.SwaggerDoc("v1", new OpenApiInfo { Title = "PtojForumIdentityAPI", Version = "v1" });
+        opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            In = ParameterLocation.Header,
+            Description = "Enter JWT token",
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            BearerFormat = "JWT",
+            Scheme = "bearer"
+        });
+        opt.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                []
+            }
+        });
+    });
+
+    builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }
+        )
+        .AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidAudience = builder.Configuration["JwtSettings:Audience"],
+                    ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+                    ClockSkew = TimeSpan.Zero,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                        builder.Configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException()))
+                };
+            }
+        );
+
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+        options.AddPolicy("User", policy => policy.RequireRole("User"));
+        options.AddPolicy("Editor", policy => policy.RequireRole("Editor"));
+    });
+
+    builder.Services.AddMassTransit(x =>
+    {
+        x.UsingRabbitMq((context, cfg) =>
+        {
+            cfg.Host("rabbitmq://localhost", h =>
+            {
+                h.Username("guest");
+                h.Password("guest");
+            });
+
+            cfg.ConfigureEndpoints(context);
+        });
+
+        // x.AddRequestClient<UserStatusChangedEvent>();
+    });
+
+    var app = builder.Build();
+
+
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
+    }
+
+    await app.UseIdentitySeedingAsync();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    app.UseExceptionHandler();
+
+    app.Run();
 }
-
-await app.UseIdentitySeedingAsync();
-
-if (app.Environment.IsDevelopment())
+catch (Exception e)
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    Log.Fatal(e, "Application terminated unexpectedly");
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.UseExceptionHandler();
-
-app.Run();
+finally
+{
+    Log.CloseAndFlush();
+}
