@@ -1,18 +1,10 @@
-using System.Reflection;
 using System.Text;
-using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ProjForum.Identity.Api.ExceptionHandlers;
 using ProjForum.Identity.Application.Extensions;
-using ProjForum.Identity.Application.Identity.Commands.Auth.Login;
-using ProjForum.Identity.Application.Services;
-using ProjForum.Identity.Domain.Identities;
-using ProjForum.Identity.Domain.Interfaces;
-using ProjForum.Identity.Infrastructure.Messaging;
 using ProjForum.Identity.Infrastructure.Persistence;
 using ProjForum.Identity.Infrastructure.Persistence.Extensions;
 using Serilog;
@@ -35,27 +27,6 @@ try
     Console.WriteLine("\n\n\nDatabase Connection String: " + configuration.GetConnectionString("PFIdentity") +
                       "\n\n\n");
 
-
-    builder.Services.AddIdentity<User, Role>(options =>
-        {
-            options.Lockout.MaxFailedAccessAttempts = 3;
-            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-            options.Lockout.AllowedForNewUsers = true;
-        })
-        .AddEntityFrameworkStores<ApplicationDbContext>()
-        .AddDefaultTokenProviders();
-
-
-    builder.Services.AddMediatR(cfg =>
-    {
-        cfg.Lifetime = ServiceLifetime.Scoped;
-        cfg.RegisterServicesFromAssembly(typeof(LoginCommand).GetTypeInfo().Assembly);
-    });
-
-    builder.Services.AddHostedService<UnblockUsersBackgroundService>();
-
-    builder.Services.AddScoped<IUserNotificationService, UserNotificationService>();
-
     builder.Services.AddApplication();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
@@ -64,7 +35,7 @@ try
 
     builder.Services.AddSwaggerGen(opt =>
     {
-        opt.SwaggerDoc("v1", new OpenApiInfo { Title = "PtojForumIdentityAPI", Version = "v1" });
+        opt.SwaggerDoc("v1", new OpenApiInfo { Title = "ProjForumIdentityAPI", Version = "v1" });
         opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
             In = ParameterLocation.Header,
@@ -119,22 +90,6 @@ try
         options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
         options.AddPolicy("User", policy => policy.RequireRole("User"));
         options.AddPolicy("Editor", policy => policy.RequireRole("Editor"));
-    });
-
-    builder.Services.AddMassTransit(x =>
-    {
-        x.UsingRabbitMq((context, cfg) =>
-        {
-            cfg.Host("rabbitmq://localhost", h =>
-            {
-                h.Username("guest");
-                h.Password("guest");
-            });
-
-            cfg.ConfigureEndpoints(context);
-        });
-
-        // x.AddRequestClient<UserStatusChangedEvent>();
     });
 
     var app = builder.Build();
