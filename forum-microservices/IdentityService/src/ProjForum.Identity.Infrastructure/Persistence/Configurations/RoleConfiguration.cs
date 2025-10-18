@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ProjForum.Identity.Domain.Identities;
+using ProjForum.Identity.Infrastructure.Persistence.Entities;
 
 namespace ProjForum.Identity.Infrastructure.Persistence.Configurations;
 
-public class RoleConfiguration : IEntityTypeConfiguration<Role>
+public class RoleConfiguration : IEntityTypeConfiguration<RoleEntity>
 {
-    public void Configure(EntityTypeBuilder<Role> builder)
+    public void Configure(EntityTypeBuilder<RoleEntity> builder)
     {
         builder.Property(r => r.IsActive)
             .IsRequired()
