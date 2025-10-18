@@ -1,12 +1,10 @@
 ﻿using FluentValidation;
-using Microsoft.AspNetCore.Identity;
-using ProjForum.Identity.Domain.Identities;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Roles.CreateRole;
 
 public class CreateRoleCommandValidator : AbstractValidator<CreateRoleCommand>
 {
-    public CreateRoleCommandValidator(RoleManager<Role> roleManager)
+    public CreateRoleCommandValidator()
     {
         RuleFor(command => command.Name)
             .NotEmpty()
