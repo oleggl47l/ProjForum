@@ -1,9 +1,6 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Identity;
 using ProjForum.BuildingBlocks.Domain.Interfaces;
 using ProjForum.Identity.Application.DTOs;
-using ProjForum.Identity.Domain.Exceptions;
-using ProjForum.Identity.Domain.Identities;
 using ProjForum.Identity.Domain.Interfaces.Repositories;
 
 namespace ProjForum.Identity.Application.Identity.Commands.Roles.DeleteRole;
@@ -24,7 +21,7 @@ public class DeleteRoleCommandHandler(
             throw new InvalidOperationException(
                 "Impossible to delete a role because there are users who have this role.");
 
-        roleRepository.Delete(role);
+        await roleRepository.DeleteAsync(role, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new OperationResultDto(true, "Role deleted");
