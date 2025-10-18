@@ -7,9 +7,15 @@ using ProjForum.Identity.Infrastructure.Persistence.Mappers;
 
 namespace ProjForum.Identity.Infrastructure.Persistence.Repositories;
 
-public class UserRepository(ApplicationDbContext dbContext, UserManager<UserEntity> userManager)
-    : RepositoryBase<User>(dbContext), IUserRepository
+public class UserRepository(UserManager<UserEntity> userManager, ApplicationDbContext dbContext)
+    : IUserRepository
 {
+    public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var entity = await userManager.FindByIdAsync(id.ToString());
+        return entity?.ToDomain();
+    }
+
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         var entity = await userManager.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
@@ -22,26 +28,68 @@ public class UserRepository(ApplicationDbContext dbContext, UserManager<UserEnti
         return entity?.ToDomain();
     }
 
+    public async Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        var entities = await userManager.Users.AsNoTracking().ToListAsync(cancellationToken: cancellationToken);
+        return entities.Select(r => r.ToDomain()).ToList();
+    }
+
+    public async Task AddAsync(User user, CancellationToken cancellationToken = default)
+    {
+        var entity = new UserEntity
+        {
+            Id = user.Id.ToString(),
+            UserName = user.UserName,
+            Email = user.Email,
+            Active = user.Active,
+            RefreshToken = user.RefreshToken,
+            RefreshTokenExpires = user.RefreshTokenExpires,
+            AccessFailedCount = user.AccessFailedCount
+        };
+
+        await userManager.CreateAsync(entity);
+    }
+
+    public async Task UpdateAsync(User user, CancellationToken cancellationToken = default)
+    {
+        var entity = await userManager.FindByIdAsync(user.Id.ToString());
+
+        if (entity != null)
+        {
+            entity.UpdateFromDomain(user);
+            await userManager.UpdateAsync(entity);
+        }
+    }
+
+    public async Task DeleteAsync(User user, CancellationToken cancellationToken = default)
+    {
+        var entity = await userManager.FindByIdAsync(user.Id.ToString());
+
+        if (entity != null)
+            await userManager.DeleteAsync(entity);
+    }
+
     public async Task BlockAsync(User user, int timeInMinutes, CancellationToken cancellationToken = default)
     {
         var entity = await userManager.FindByIdAsync(user.Id.ToString());
-        if (entity is not null)
+
+        if (entity != null)
         {
             entity.Active = false;
-            await userManager.UpdateAsync(entity);
-
-            var lockoutEnd = DateTimeOffset.UtcNow.AddMinutes(timeInMinutes);
             await userManager.SetLockoutEnabledAsync(entity, true);
-            await userManager.SetLockoutEndDateAsync(entity, lockoutEnd);
+            await userManager.SetLockoutEndDateAsync(entity, DateTimeOffset.UtcNow.AddMinutes(timeInMinutes));
+            await userManager.UpdateAsync(entity);
         }
     }
 
     public async Task UnblockAsync(User user, CancellationToken cancellationToken = default)
     {
         var entity = await userManager.FindByIdAsync(user.Id.ToString());
-        if (entity is not null)
+
+        if (entity != null)
         {
             entity.Active = true;
+            await userManager.SetLockoutEndDateAsync(entity, null);
             await userManager.UpdateAsync(entity);
         }
     }
@@ -49,21 +97,22 @@ public class UserRepository(ApplicationDbContext dbContext, UserManager<UserEnti
     public async Task AddToRoleAsync(User user, string roleName, CancellationToken cancellationToken = default)
     {
         var entity = await userManager.FindByIdAsync(user.Id.ToString());
-        if (entity is not null)
-            await userManager.AddToRoleAsync(entity, roleName);
+
+        if (entity != null) await userManager.AddToRoleAsync(entity, roleName);
     }
 
     public async Task RemoveFromRoleAsync(User user, string roleName, CancellationToken cancellationToken = default)
     {
         var entity = await userManager.FindByIdAsync(user.Id.ToString());
-        if (entity is not null)
-            await userManager.RemoveFromRoleAsync(entity, roleName);
+
+        if (entity != null) await userManager.RemoveFromRoleAsync(entity, roleName);
     }
 
     public async Task<IList<string>> GetRolesAsync(User user, CancellationToken cancellationToken = default)
     {
         var entity = await userManager.FindByIdAsync(user.Id.ToString());
-        if (entity is null) return new List<string>();
+        if (entity is null)
+            return [];
 
         return await userManager.GetRolesAsync(entity);
     }
@@ -74,23 +123,22 @@ public class UserRepository(ApplicationDbContext dbContext, UserManager<UserEnti
         CancellationToken cancellationToken = default)
     {
         var query = userManager.Users.AsNoTracking();
-
         var total = await query.CountAsync(cancellationToken);
+
         var items = await query
             .Skip(pageIndex * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        return (items.Select(x => x.ToDomain()).ToList(), total);
+        return (items.Select(u => u.ToDomain()).ToList(), total);
     }
 
     public async Task<IReadOnlyList<User>> GetByRoleIdAsync(Guid roleId, CancellationToken cancellationToken = default)
     {
-        var role = await DbContext.Roles.FirstOrDefaultAsync(r => r.Id == roleId.ToString(), cancellationToken);
+        var role = await dbContext.Roles.FirstOrDefaultAsync(r => r.Id == roleId.ToString(), cancellationToken);
         if (role is null) return new List<User>();
 
-        var usersInRole = await userManager.GetUsersInRoleAsync(role.Name!);
-
-        return usersInRole.Select(u => u.ToDomain()).ToList();
+        var users = await userManager.GetUsersInRoleAsync(role.Name!);
+        return users.Select(u => u.ToDomain()).ToList();
     }
 }

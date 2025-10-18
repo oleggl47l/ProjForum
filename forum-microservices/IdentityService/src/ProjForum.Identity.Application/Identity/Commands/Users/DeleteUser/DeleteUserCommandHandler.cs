@@ -14,7 +14,7 @@ public class DeleteUserCommandHandler(IUserRepository userRepository, IUnitOfWor
                    ?? throw new KeyNotFoundException("User not found");
 
         user.MarkAsDeleted();
-        userRepository.Delete(user);
+        await userRepository.DeleteAsync(user, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new OperationResultDto(true, "User deleted");

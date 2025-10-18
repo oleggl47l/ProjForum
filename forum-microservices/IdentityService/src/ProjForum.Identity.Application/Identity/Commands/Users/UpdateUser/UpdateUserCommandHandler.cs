@@ -26,7 +26,7 @@ public class UpdateUserCommandHandler(IUserRepository userRepository, IUnitOfWor
         user = User.FromPersistence(user.Id, request.UserName, request.Email, user.Active,
             user.RefreshToken, user.RefreshTokenExpires, user.AccessFailedCount);
 
-        userRepository.Update(user);
+        await userRepository.UpdateAsync(user, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var roles = await userRepository.GetRolesAsync(user, cancellationToken);

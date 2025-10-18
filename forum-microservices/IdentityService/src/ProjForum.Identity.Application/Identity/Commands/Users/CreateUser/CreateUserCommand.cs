@@ -7,6 +7,5 @@ namespace ProjForum.Identity.Application.Identity.Commands.Users.CreateUser;
 public record CreateUserCommand(
     string UserName,
     string Email,
-    string Password,
-    IEnumerable<string> Roles
+    string Password
 ) : IRequest<CreateUserResultDto>;

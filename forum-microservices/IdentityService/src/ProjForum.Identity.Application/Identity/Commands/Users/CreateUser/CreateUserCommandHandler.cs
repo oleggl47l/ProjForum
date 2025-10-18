@@ -21,21 +21,16 @@ public class CreateUserCommandHandler(
         if (await userRepository.GetByUserNameAsync(request.UserName, cancellationToken) is not null)
             throw new InvalidOperationException("Username already in use");
 
-        foreach (var role in request.Roles)
-        {
-            var existingRole = await roleRepository.GetByNameAsync(role, cancellationToken);
-            if (existingRole is null)
-                throw new KeyNotFoundException($"Role '{role}' not found");
-        }
+        var userRole = await roleRepository.GetByNameAsync("User", cancellationToken);
+        if (userRole is null)
+            throw new KeyNotFoundException("Default role 'User' not found. Please seed roles before creating users.");
 
         var user = User.Create(request.UserName, request.Email);
 
         await unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             await userRepository.AddAsync(user, cancellationToken);
-
-            foreach (var role in request.Roles)
-                await userRepository.AddToRoleAsync(user, role, cancellationToken);
+            await userRepository.AddToRoleAsync(user, "User", cancellationToken);
         }, cancellationToken);
 
         var roles = await userRepository.GetRolesAsync(user, cancellationToken);
