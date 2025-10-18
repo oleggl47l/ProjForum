@@ -1,0 +1,41 @@
+﻿using MediatR;
+using ProjForum.BuildingBlocks.Domain.Interfaces;
+using ProjForum.Identity.Application.DTOs;
+using ProjForum.Identity.Application.DTOs.User;
+using ProjForum.Identity.Domain.Identities;
+using ProjForum.Identity.Domain.Interfaces.Repositories;
+
+namespace ProjForum.Identity.Application.Identity.Commands.Users.CreateUser;
+
+public class CreateUserCommandHandler(
+    IUserRepository userRepository,
+    IRoleRepository roleRepository,
+    IUnitOfWork unitOfWork)
+    : IRequestHandler<CreateUserCommand, CreateUserResultDto>
+{
+    public async Task<CreateUserResultDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+    {
+        if (await userRepository.GetByEmailAsync(request.Email, cancellationToken) is not null)
+            throw new InvalidOperationException("Email already in use");
+
+        if (await userRepository.GetByUserNameAsync(request.UserName, cancellationToken) is not null)
+            throw new InvalidOperationException("Username already in use");
+
+        var userRole = await roleRepository.GetByNameAsync("User", cancellationToken);
+        if (userRole is null)
+            throw new KeyNotFoundException("Default role 'User' not found. Please seed roles before creating users.");
+
+        var user = User.Create(request.UserName, request.Email);
+
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
+        {
+            await userRepository.AddAsync(user, cancellationToken);
+            await userRepository.AddToRoleAsync(user, "User", cancellationToken);
+        }, cancellationToken);
+
+        var roles = await userRepository.GetRolesAsync(user, cancellationToken);
+        var dto = new UserDto(user.Id, user.UserName, user.Email, user.Active, user.AccessFailedCount, roles);
+
+        return new CreateUserResultDto(new OperationResultDto(true, "User created successfully"), dto);
+    }
+}

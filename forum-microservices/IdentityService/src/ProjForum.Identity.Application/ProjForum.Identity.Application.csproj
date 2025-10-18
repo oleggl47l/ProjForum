@@ -9,7 +9,6 @@
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App"/>
         <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
-        <PackageReference Include="MassTransit.Abstractions" Version="8.3.4-develop.2148" />
         <PackageReference Include="MediatR" Version="12.4.1"/>
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.11"/>
         <PackageReference Include="Serilog" Version="4.1.1-dev-02318" />
@@ -21,6 +20,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\..\SharedModels\SharedModels\SharedModels.csproj" />
         <ProjectReference Include="..\ProjForum.Identity.Domain\ProjForum.Identity.Domain.csproj" />
+        <ProjectReference Include="..\ProjForum.Identity.Infrastructure\ProjForum.Identity.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

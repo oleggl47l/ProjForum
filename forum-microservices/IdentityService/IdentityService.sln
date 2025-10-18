@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedModels", "..\SharedMo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjForum.Identity.Application", "src\ProjForum.Identity.Application\ProjForum.Identity.Application.csproj", "{B474BC78-3127-44EF-A416-29F7979DCF48}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjForum.BuildingBlocks", "..\BuildingBlocks\ProjForum.BuildingBlocks\ProjForum.BuildingBlocks.csproj", "{67F8EAAF-F9D3-48B8-81DE-A0563FBE0135}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{B474BC78-3127-44EF-A416-29F7979DCF48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B474BC78-3127-44EF-A416-29F7979DCF48}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B474BC78-3127-44EF-A416-29F7979DCF48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67F8EAAF-F9D3-48B8-81DE-A0563FBE0135}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67F8EAAF-F9D3-48B8-81DE-A0563FBE0135}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67F8EAAF-F9D3-48B8-81DE-A0563FBE0135}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67F8EAAF-F9D3-48B8-81DE-A0563FBE0135}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C2D7BBF0-227C-433F-9B75-DBFBF3BF3E72} = {49E94096-D237-40F5-A4BE-0045722880F5}
