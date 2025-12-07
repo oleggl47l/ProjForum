@@ -1,0 +1,41 @@
+<div [style.display]="'flex'" [style.height]="'100%'">
+  <aside [tuiNavigationAside]="expanded">
+    <hr />
+    <button iconStart="@tui.search" tuiAsideItem type="button">Search</button>
+    @for (group of generateMenuGroups(); track group.id) {
+      <tui-aside-group>
+        <button
+          [attr.data-test-id]="group.id"
+          [iconStart]="group.icon"
+          tuiAsideItem
+          tuiChevron
+          type="button">
+          {{ group.title }}
+          <ng-template>
+            @for (item of group.items; track item.key) {
+              <a
+                [routerLink]="item.link"
+                tuiAsideItem
+                type="button"
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{exact: true}">
+                {{ item.key }}
+              </a>
+            }
+          </ng-template>
+        </button>
+      </tui-aside-group>
+    }
+    <hr />
+    <footer>
+      <button
+        tuiAsideItem
+        data-cy="toggle-button"
+        type="button"
+        [iconStart]="expanded ? '@tui.chevron-left' : '@tui.chevron-right'"
+        (click)="expanded = !expanded">
+        {{ expanded ? 'Collapse' : 'Expand' }}
+      </button>
+    </footer>
+  </aside>
+</div>
