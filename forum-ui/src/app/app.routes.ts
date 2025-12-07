@@ -1,4 +1,4 @@
-import {Routes} from '@angular/router';
+import { Routes } from '@angular/router';
 
 //TODO: для логина нужно будет добавить еще guard canActivate персональный и
 // для общего path тоже нужно будет добавить canActivate для предотварщения
@@ -42,7 +42,6 @@ import {Routes} from '@angular/router';
 //   });
 // };
 
-
 //TODO: уже сюда тоже напишу, для форм нужно будет также сделать гуард canDeactivate с вызовом формы подтверждения действия.
 // работать будет примерно так: например, идет создание статьи, вы ввели какие-то значения в форму,
 // а потом случайно закрываете - гуард перехватывает и выводит диалоговое окно с просьбой подтверждения
@@ -67,26 +66,26 @@ import {Routes} from '@angular/router';
 
 export const routes: Routes = [
   {
+    // пример
     // { path: 'login', component: LoginPageComponent, canActivate: [loginGuard] },
     path: '',
     loadComponent: () =>
       import('./core/components/layout/layout.component').then(
-        (m) => m.LayoutComponent
+        m => m.LayoutComponent
       ),
+    // пример
     // canActivate: [authGuard],
     children: [
       {
         path: '',
         redirectTo: 'home',
-        pathMatch: 'full'
+        pathMatch: 'full',
       },
       {
         path: 'home',
         loadComponent: () =>
-          import('./features/home/home.component').then(
-            (m) => m.HomeComponent
-          )
+          import('./features/home/home.component').then(m => m.HomeComponent),
       },
-    ]
-  }
+    ],
+  },
 ];

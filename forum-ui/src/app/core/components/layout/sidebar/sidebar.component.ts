@@ -34,7 +34,12 @@ export class SidebarComponent {
     ];
   }
 
-  private createMenuGroup(id: string, icon: string, title: string, items: any[]) {
+  private createMenuGroup(
+    id: string,
+    icon: string,
+    title: string,
+    items: any[]
+  ) {
     return { id, icon, title, items };
   }
 }
