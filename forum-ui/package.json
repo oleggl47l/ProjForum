@@ -6,7 +6,11 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+
+    "generate:api": "npm run generate:swagger-json && npm run generate:swagger-services",
+    "generate:swagger-json": "node swagger/combine.js",
+    "generate:swagger-services": "npx ng-openapi-gen --config swagger/ng-openapi-gen.json"
   },
   "private": true,
   "dependencies": {
@@ -43,6 +47,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "less": "^4.2.0",
+    "openapi-typescript-codegen": "^0.29.0",
     "typescript": "~5.9.3"
   }
 }

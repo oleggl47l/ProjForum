@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cyclosproject/ng-openapi-gen/master/ng-openapi-gen-schema.json",
+  "input": "swagger/swagger-combine-result.json",
+  "output": "src/app/api",
+  "ignoreUnusedModels": false,
+  "ignoreUnusedServices": false,
+  "removeStaleFiles": true,
+  "generateApiModule": true,
+  "generateApiService": true,
+  "generateModels": true,
+  "generateInterfaces": false,
+  "generateResponses": true,
+  "operationIdField": "operationId",
+  "baseUrl": "http://localhost:5000",
+  "apiServiceSuffix": "Service",
+  "modelSuffix": "",
+  "enumStyle": "pascal",
+  "enumArray": true,
+  "usePathInUrl": false,
+  "prefixModels": false,
+  "models": {
+    "suffix": ""
+  },
+  "customizations": {
+    "typeMappings": {
+      "LocalDate": "Date",
+      "LocalDateTime": "Date"
+    }
+  }
+}
