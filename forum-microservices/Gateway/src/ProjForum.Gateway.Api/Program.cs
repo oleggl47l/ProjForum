@@ -1,38 +1,23 @@
-using Serilog;
+using ProjForum.Gateway.Api.Extensions;
+using ProjForum.Gateway.Api.Options;
 
-Log.Logger = new LoggerConfiguration()
-    .Enrich.FromLogContext()
-    .ReadFrom.Configuration(new ConfigurationBuilder()
-        .AddJsonFile("appsettings.json")
-        .Build()).WriteTo.Console()
-    .CreateLogger();
-try
-{
-    var builder = WebApplication.CreateBuilder(args);
-    builder.Host.UseSerilog();
+var builder = WebApplication.CreateBuilder(args);
 
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+builder.Configuration.AddJsonFile($"ocelot.{builder.Environment.EnvironmentName}.json", optional: false,
+    reloadOnChange: true);
 
-    var app = builder.Build();
+builder.Host.AddSerilogLogging(builder.Configuration);
 
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
+builder.Services.ConfigureOptions(builder.Configuration);
 
-    app.UseRouting();
-    app.MapControllers();
-    app.UseAuthentication();
+builder.Services
+    .AddCorsConfiguration()
+    .AddJwtAuth(builder.Configuration)
+    .AddDocumentation(builder.Configuration)
+    .AddGateway(builder.Configuration);
 
-    app.Run();
-}
-catch (Exception e)
-{
-    Log.Fatal(e, "Application terminated unexpectedly");
-}
-finally
-{
-    Log.CloseAndFlush();
-}
+var app = builder.Build();
+
+app.UseAppPipeline();
+
+await app.RunGatewayAsync();
