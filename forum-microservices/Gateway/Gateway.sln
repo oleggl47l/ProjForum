@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaReview.Gateway.Api", "src\MediaReview.Gateway.Api\MediaReview.Gateway.Api.csproj", "{37063F99-741A-431F-BDD7-211E2DA65930}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjForum.Gateway.Api", "src\ProjForum.Gateway.Api\ProjForum.Gateway.Api.csproj", "{37063F99-741A-431F-BDD7-211E2DA65930}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{CD3F4F59-561A-4E5A-A110-4CEE4968705E}"
 EndProject
