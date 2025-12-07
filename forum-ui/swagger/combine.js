@@ -11,9 +11,7 @@ function writeJsonFile(filepath, data) {
 }
 
 const config = {
-  apis: [
-    'identity.swagger.json',
-  ]
+  apis: ['identity.swagger.json'],
 };
 
 const configPath = path.join(__dirname, 'swagger-combine-config.json');
@@ -25,38 +23,40 @@ if (fs.existsSync(configPath)) {
 }
 
 let result = {
-  openapi: "3.0.1",
+  openapi: '3.0.1',
   info: {
-    title: "Forum API",
-    version: "1.0.0",
-    description: "Combined API for Forum project"
+    title: 'Forum API',
+    version: '1.0.0',
+    description: 'Combined API for Forum project',
   },
   servers: [
     {
-      url: "http://localhost:5000",
-      description: "Local development server"
-    }
+      url: 'http://localhost:5000',
+      description: 'Local development server',
+    },
   ],
   paths: {},
   components: {
     schemas: {},
     securitySchemes: {
       bearer: {
-        type: "http",
-        scheme: "bearer",
-        bearerFormat: "JWT"
-      }
-    }
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
   },
   security: [
     {
-      bearer: []
-    }
-  ]
+      bearer: [],
+    },
+  ],
 };
 
 config.apis.forEach(apiPath => {
-  const fullPath = path.isAbsolute(apiPath) ? apiPath : path.join(__dirname, apiPath);
+  const fullPath = path.isAbsolute(apiPath)
+    ? apiPath
+    : path.join(__dirname, apiPath);
 
   if (!fs.existsSync(fullPath)) {
     console.warn(`Swagger file not found: ${fullPath}`);
@@ -75,7 +75,7 @@ config.apis.forEach(apiPath => {
     if (api.components && api.components.schemas) {
       result.components.schemas = {
         ...api.components.schemas,
-        ...result.components.schemas
+        ...result.components.schemas,
       };
     }
 
@@ -83,7 +83,7 @@ config.apis.forEach(apiPath => {
     if (api.components && api.components.securitySchemes) {
       result.components.securitySchemes = {
         ...result.components.securitySchemes,
-        ...api.components.securitySchemes
+        ...api.components.securitySchemes,
       };
     }
 
@@ -93,9 +93,6 @@ config.apis.forEach(apiPath => {
   }
 });
 
-writeJsonFile(
-  path.join(__dirname, 'swagger-combine-result.json'),
-  result
-);
+writeJsonFile(path.join(__dirname, 'swagger-combine-result.json'), result);
 
 console.log('Swagger files combined successfully!');

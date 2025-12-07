@@ -14,9 +14,7 @@
   "paths": {
     "/api/identity/Roles": {
       "get": {
-        "tags": [
-          "Roles"
-        ],
+        "tags": ["Roles"],
         "operationId": "GetAllRoles",
         "responses": {
           "200": {
@@ -51,9 +49,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Roles"
-        ],
+        "tags": ["Roles"],
         "operationId": "CreateRole",
         "requestBody": {
           "content": {
@@ -100,9 +96,7 @@
     },
     "/api/identity/Roles/{id}": {
       "get": {
-        "tags": [
-          "Roles"
-        ],
+        "tags": ["Roles"],
         "operationId": "GetRoleById",
         "parameters": [
           {
@@ -139,9 +133,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Roles"
-        ],
+        "tags": ["Roles"],
         "operationId": "UpdateRole",
         "parameters": [
           {
@@ -197,9 +189,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Roles"
-        ],
+        "tags": ["Roles"],
         "operationId": "DeleteRole",
         "parameters": [
           {
@@ -221,9 +211,7 @@
     },
     "/api/identity/Users": {
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "operationId": "CreateUser",
         "requestBody": {
           "content": {
@@ -270,9 +258,7 @@
     },
     "/api/identity/Users/{id}": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "operationId": "GetUserById",
         "parameters": [
           {
@@ -309,9 +295,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "operationId": "UpdateUser",
         "parameters": [
           {
@@ -367,9 +351,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "operationId": "DeleteUser",
         "parameters": [
           {
@@ -391,9 +373,7 @@
     },
     "/api/identity/Users/{id}/block": {
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "operationId": "BlockUser",
         "parameters": [
           {
@@ -440,9 +420,7 @@
     },
     "/api/identity/Users/{id}/roles/add": {
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "operationId": "AddRoleToUser",
         "parameters": [
           {
@@ -488,9 +466,7 @@
     },
     "/api/identity/Users/{id}/roles/remove": {
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "operationId": "RemoveRoleFromUser",
         "parameters": [
           {
@@ -536,9 +512,7 @@
     },
     "/api/identity/Users/{id}/unblock": {
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "operationId": "UnblockUser",
         "parameters": [
           {
@@ -577,9 +551,7 @@
     },
     "/api/identity/Users/by-email": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "operationId": "GetUserByEmail",
         "parameters": [
           {
@@ -616,9 +588,7 @@
     },
     "/api/identity/Users/by-role/{roleId}": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "operationId": "GetUsersByRoleId",
         "parameters": [
           {
@@ -666,9 +636,7 @@
     },
     "/api/identity/Users/paged": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "operationId": "GetPagedUsers",
         "parameters": [
           {
@@ -716,9 +684,7 @@
     },
     "/api/identity/v1/Auth/login": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Login user",
         "description": "Logs in a user and returns JWT and refresh token.",
         "operationId": "LoginUser",
@@ -767,9 +733,7 @@
     },
     "/api/identity/v1/Auth/logout": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Logout user",
         "description": "Logs out the currently authenticated user.",
         "operationId": "LogoutUser",
@@ -782,9 +746,7 @@
     },
     "/api/identity/v1/Auth/register": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Register user",
         "description": "Registers a new user with specified roles.",
         "operationId": "RegisterUser",

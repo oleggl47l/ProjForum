@@ -1,9 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const swaggerFiles = [
-  'combined.json'
-];
+const swaggerFiles = ['combined.json'];
 
 const inputDir = path.resolve('swagger');
 const outputDir = path.resolve('src/app/api');
@@ -25,7 +23,7 @@ for (const file of swaggerFiles) {
     output: outputDir,
     httpClient: 'fetch',
     useOptions: true,
-    useUnionTypes: true
+    useUnionTypes: true,
   });
 
   console.log('Generated:', file);
