@@ -414,8 +414,5 @@ FodyWeavers.xsd
 bin/
 obj/
 
-# Migrations folder 
-Migrations/
-
 # Logs folder
 Logs/
