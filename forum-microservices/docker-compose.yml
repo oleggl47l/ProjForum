@@ -12,6 +12,15 @@ services:
     volumes:
       - postgres_pfidentity_data:/var/lib/postgresql/data
 
+  project-forum-gateway:
+    container_name: project-forum-gateway
+    build:
+      context: ./Gateway
+    ports:
+      - "5000:8080"  
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      
 #  pfforum_db:
 #    container_name: pfforum_db
 #    restart: always
