@@ -1,37 +1,37 @@
 services:
   pfidentity_db:
     container_name: pfidentity_db
-    image: postgres    
+    image: postgres:17
     restart: always
     environment:
       POSTGRES_DB: PFIdentity
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123Qq123
     ports:
-      - 5433:5432
+      - 5432:5432
     volumes:
       - postgres_pfidentity_data:/var/lib/postgresql/data
 
-  pfforum_db:
-    container_name: pfforum_db
-    restart: always
-    image: postgres
-    environment:
-      POSTGRES_DB: PFForum
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123Qq123
-    ports:
-      - 5434:5432
-    volumes:
-      - postgres_pfforum_data:/var/lib/postgresql/data
+#  pfforum_db:
+#    container_name: pfforum_db
+#    restart: always
+#    image: postgres
+#    environment:
+#      POSTGRES_DB: PFForum
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: 123Qq123
+#    ports:
+#      - 5434:5432
+#    volumes:
+#      - postgres_pfforum_data:/var/lib/postgresql/data
 
   project-forum-identity-serivce:
     container_name: project-forum-identity-serivce
     build:
-      context: ./IdentityService
-      dockerfile: src/ProjectForum.Identity.Api/Dockerfile
+      context: .
+      dockerfile: IdentityService/src/ProjForum.Identity.Api/Dockerfile
     ports:
-      - "5288:8080"  
+      - "5001:8080"  
     environment:
       - JwtSettings__SecretKey=$"{JWT_SECRETKEY}"
       - ASPNETCORE_ENVIRONMENT=Development
