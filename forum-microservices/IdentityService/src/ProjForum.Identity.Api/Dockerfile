@@ -1,26 +1,24 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
+﻿FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["src/ProjForum.Identity.Api/ProjForum.Identity.Api.csproj", "src/ProjForum.Identity.Api/"]
-COPY ["src/ProjForum.Identity.Infrastructure/ProjForum.Identity.Infrastructure.csproj", "src/ProjForum.Identity.Infrastructure/"]
-COPY ["src/ProjForum.Identity.Domain/ProjForum.Identity.Domain.csproj", "src/ProjForum.Identity.Domain/"]
-COPY ["src/ProjForum.Identity.Application/ProjForum.Identity.Application.csproj", "src/ProjForum.Identity.Application/"]
-RUN dotnet restore "src/ProjForum.Identity.Api/ProjForum.Identity.Api.csproj"
+
+COPY IdentityService/IdentityService.sln ./
+
+COPY IdentityService/src/ProjForum.Identity.Api/ProjForum.Identity.Api.csproj src/ProjForum.Identity.Api/
+COPY IdentityService/src/ProjForum.Identity.Application/ProjForum.Identity.Application.csproj src/ProjForum.Identity.Application/
+COPY IdentityService/src/ProjForum.Identity.Domain/ProjForum.Identity.Domain.csproj src/ProjForum.Identity.Domain/
+COPY IdentityService/src/ProjForum.Identity.Infrastructure/ProjForum.Identity.Infrastructure.csproj src/ProjForum.Identity.Infrastructure/
+
+COPY SharedModels/SharedModels/SharedModels.csproj ../SharedModels/SharedModels/
+COPY BuildingBlocks/ProjForum.BuildingBlocks/ProjForum.BuildingBlocks.csproj ../BuildingBlocks/ProjForum.BuildingBlocks/
+
+RUN dotnet restore IdentityService.sln
+
 COPY . .
-WORKDIR "/src/src/ProjForum.Identity.Api"
-RUN dotnet build "ProjForum.Identity.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "ProjForum.Identity.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# 6. Публикуем
+RUN dotnet publish IdentityService/src/ProjForum.Identity.Api/ProjForum.Identity.Api.csproj -c Release -o /app/out
 
-FROM base AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/out .
 ENTRYPOINT ["dotnet", "ProjForum.Identity.Api.dll"]
