@@ -1,9 +1,10 @@
 import { Routes } from '@angular/router';
+import {LoginFormComponent} from './core/components/login-form/login-form.component';
 
 //TODO: для логина нужно будет добавить еще guard canActivate персональный и
 // для общего path тоже нужно будет добавить canActivate для предотварщения
 // некорректной работы с роутами после логина и по его истечении и использования без аутентификации
-// p.s. пример закомменченный для использования оставил
+// p.s. пример закомменченный для использования оставилd
 // также что-то типа примеров:
 // import { inject } from '@angular/core';
 // import { Router, UrlTree } from '@angular/router';
@@ -65,6 +66,9 @@ import { Routes } from '@angular/router';
 // };
 
 export const routes: Routes = [
+
+  { path: 'login', component: LoginFormComponent},
+
   {
     // пример
     // { path: 'login', component: LoginPageComponent, canActivate: [loginGuard] },
