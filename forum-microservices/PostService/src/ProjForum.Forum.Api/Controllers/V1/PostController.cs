@@ -28,31 +28,24 @@ public class PostController(IMediator mediator) : ControllerBase
     [HttpGet("{id}/tag")]
     public async Task<IActionResult> GetPostsByTagAsync(Guid id)
     {
-        var posts = await mediator.Send(new GetPostsByTagQuery{TagId = id});
+        var posts = await mediator.Send(new GetPostsByTagQuery { TagId = id });
         return Ok(posts);
     }
 
     [HttpGet("{id}/category")]
     public async Task<IActionResult> GetPostsByCategory(Guid id)
     {
-        var posts = await mediator.Send(new GetPostsByCategoryQuery{CategoryId = id});
+        var posts = await mediator.Send(new GetPostsByCategoryQuery { CategoryId = id });
         return Ok(posts);
     }
-    
+
     [HttpPost]
     public async Task<IActionResult> CreatePostAsync(CreatePostCommand command)
     {
         await mediator.Send(command);
         return Ok();
     }
-    
-    [HttpPost]
-    public async Task<IActionResult> AddTagToPost(AddTagToPostCommand command)
-    {
-        await mediator.Send(command);
-        return NoContent();
-    }
-    
+
     [HttpPatch]
     public async Task<IActionResult> UpdatePostAsync(UpdatePostCommand command)
     {
@@ -66,7 +59,14 @@ public class PostController(IMediator mediator) : ControllerBase
         await mediator.Send(command);
         return Ok();
     }
-    
+
+    [HttpPost]
+    public async Task<IActionResult> AddTagToPost(AddTagToPostCommand command)
+    {
+        await mediator.Send(command);
+        return NoContent();
+    }
+
     [HttpDelete]
     public async Task<IActionResult> RemoveTagFromPost(RemoveTagFromPostCommand command)
     {
