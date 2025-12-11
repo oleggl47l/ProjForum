@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import {LoginFormComponent} from './core/components/login-form/login-form.component';
+import {RegisterFormComponent} from './core/components/register-form/register-form.component';
 
 //TODO: для логина нужно будет добавить еще guard canActivate персональный и
 // для общего path тоже нужно будет добавить canActivate для предотварщения
@@ -68,6 +69,7 @@ import {LoginFormComponent} from './core/components/login-form/login-form.compon
 export const routes: Routes = [
 
   { path: 'login', component: LoginFormComponent},
+  { path: 'register', component: RegisterFormComponent},
 
   {
     // пример

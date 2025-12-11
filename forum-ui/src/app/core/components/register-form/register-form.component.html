@@ -1,1 +1,109 @@
-<p>register-form works!</p>
+<div class="register-container">
+  <form
+    tuiCardLarge
+    tuiForm="m"
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    class="register-card"
+  >
+    <header tuiHeader class="register-header">
+      <h2 tuiTitle class="register-title">
+        Sign Up
+        <span tuiSubtitle class="register-subtitle">Create your account</span>
+      </h2>
+    </header>
+
+    <!-- Username Field -->
+    <div class="form-field">
+      <tui-textfield class="input-field">
+        <label tuiLabel for="username" class="field-label">Username</label>
+        <input
+          id="username"
+          formControlName="username"
+          placeholder="Enter your username"
+          tuiTextfield
+          autocomplete="username"
+          class="field-input"
+        />
+      </tui-textfield>
+      <div class="error-container">
+        <tui-error
+          formControlName="username"
+          [error]="[] | tuiFieldError | async"
+          class="error-message"
+        />
+      </div>
+    </div>
+
+    <!-- Email Field -->
+    <div class="form-field">
+      <tui-textfield class="input-field">
+        <label tuiLabel for="email" class="field-label">Email</label>
+        <input
+          id="email"
+          formControlName="email"
+          placeholder="Enter your email"
+          tuiTextfield
+          type="email"
+          autocomplete="email"
+          class="field-input"
+        />
+      </tui-textfield>
+      <div class="error-container">
+        <tui-error
+          formControlName="email"
+          [error]="[] | tuiFieldError | async"
+          class="error-message"
+        />
+      </div>
+    </div>
+
+    <!-- Password Field -->
+    <div class="form-field">
+      <tui-textfield class="input-field">
+        <label tuiLabel for="password" class="field-label">Password</label>
+        <input
+          id="password"
+          formControlName="password"
+          placeholder="Enter your password"
+          tuiTextfield
+          type="password"
+          autocomplete="new-password"
+          class="field-input"
+        />
+      </tui-textfield>
+      <div class="error-container">
+        <tui-error
+          formControlName="password"
+          [error]="[] | tuiFieldError | async"
+          class="error-message"
+        />
+      </div>
+    </div>
+
+    <footer class="register-footer">
+      <button
+        tuiButton
+        type="submit"
+        [disabled]="form.invalid"
+        class="submit-button"
+      >
+        Sign Up
+      </button>
+
+      <div class="login-section">
+        <p class="login-text">
+          Already have an account?
+          <button
+            type="button"
+            tuiLink
+            class="login-link"
+            (click)="navigateToLogin()"
+          >
+            Sign In
+          </button>
+        </p>
+      </div>
+    </footer>
+  </form>
+</div>
