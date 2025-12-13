@@ -1,0 +1,130 @@
+@if (open) {
+  <div
+    class="dialog-overlay"
+    (click)="closeDialog()"
+    (keydown.enter)="closeDialog()"
+    (keydown.escape)="closeDialog()"
+    (keydown.space)="closeDialog()"
+    tabindex="0"
+    role="button"
+    aria-label="Закрыть диалог"
+  >
+    <div
+      class="dialog-content"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      aria-labelledby="dialog-title"
+      aria-modal="true"
+    >
+      <h2 id="dialog-title" class="dialog-title">
+        <tui-icon icon="tuiIconFilePlus" size="m"></tui-icon>
+        Создать новый пост
+      </h2>
+
+      <form (ngSubmit)="createPost()" class="post-form">
+        <!-- Заголовок -->
+        <div class="form-field">
+          <label tuiLabel for="title">Заголовок *</label>
+          <tui-textfield>
+            <input
+              tuiTextfield
+              id="title"
+              [(ngModel)]="post.title"
+              name="title"
+              required
+              [tuiAutoFocus]="true"
+              placeholder="Введите заголовок поста"
+              aria-required="true"
+            />
+          </tui-textfield>
+        </div>
+
+        <!-- Категория -->
+        <div class="form-field">
+          <label tuiLabel for="category">Категория *</label>
+          <tui-textfield>
+            <select
+              id="category"
+              [(ngModel)]="post.categoryName"
+              name="categoryName"
+              required
+              class="category-select"
+              aria-required="true"
+            >
+              <option value="">Выберите категорию</option>
+              @for (category of categories; track category.id) {
+                <option [value]="category.name">{{ category.name }}</option>
+              }
+            </select>
+          </tui-textfield>
+        </div>
+
+        <!-- Теги -->
+        <div class="form-field">
+          <label tuiLabel for="tags">Теги</label>
+          <tui-textfield>
+            <select
+              id="tags"
+              [(ngModel)]="post.tagNames"
+              name="tagNames"
+              multiple
+              class="tags-select"
+              aria-describedby="tags-description"
+            >
+              @for (tag of tags; track tag.id) {
+                <option [value]="tag.name">{{ tag.name }}</option>
+              }
+            </select>
+          </tui-textfield>
+          <div id="tags-description" class="field-description">
+            Удерживайте Ctrl для выбора нескольких тегов
+          </div>
+        </div>
+
+        <!-- Содержимое -->
+        <div class="form-field">
+          <label tuiLabel for="content">Содержимое *</label>
+          <tui-textfield>
+            <textarea
+              id="content"
+              [(ngModel)]="post.content"
+              name="content"
+              rows="6"
+              required
+              placeholder="Введите содержимое поста..."
+              class="content-textarea"
+              aria-required="true"
+            ></textarea>
+          </tui-textfield>
+        </div>
+
+        <!-- Кнопки -->
+        <div class="dialog-actions">
+          <button
+            tuiButton
+            type="button"
+            appearance="flat"
+            (click)="closeDialog()"
+            [disabled]="isLoading"
+            aria-label="Отменить создание поста"
+          >
+            Отмена
+          </button>
+          <button
+            tuiButton
+            type="submit"
+            appearance="primary"
+            [disabled]="!post.title || !post.content || !post.categoryName || isLoading"
+            aria-label="Создать новый пост"
+          >
+            @if (isLoading) {
+              Создание...
+            } @else {
+              Создать пост
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
