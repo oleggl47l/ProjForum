@@ -1,0 +1,104 @@
+<div class="login-container">
+  <form
+    tuiCardLarge
+    tuiForm="m"
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    class="login-card"
+  >
+    <header tuiHeader class="login-header">
+      <h2 tuiTitle class="login-title">
+        Login
+        <span tuiSubtitle class="login-subtitle">Enter your credentials</span>
+      </h2>
+    </header>
+
+    <!-- Username Field -->
+    <div class="form-field">
+      <tui-textfield class="input-field">
+        <label tuiLabel for="username" class="field-label">Username</label>
+        <input
+          id="username"
+          formControlName="username"
+          placeholder="Enter your username"
+          tuiTextfield
+          autocomplete="username"
+          class="field-input"
+        />
+      </tui-textfield>
+      <div class="error-container">
+        <tui-error
+          formControlName="username"
+          [error]="[] | tuiFieldError | async"
+          class="error-message"
+        />
+      </div>
+    </div>
+
+    <!-- Password Field -->
+    <div class="form-field">
+      <tui-textfield class="input-field">
+        <label tuiLabel for="password" class="field-label">Password</label>
+        <input
+          id="password"
+          formControlName="password"
+          placeholder="Enter your password"
+          tuiTextfield
+          type="password"
+          autocomplete="current-password"
+          class="field-input"
+        />
+      </tui-textfield>
+      <div class="error-container">
+        <tui-error
+          formControlName="password"
+          [error]="[] | tuiFieldError | async"
+          class="error-message"
+        />
+      </div>
+    </div>
+
+    <footer class="login-footer">
+      <button
+        tuiButton
+        type="submit"
+        [disabled]="form.invalid || isLoading()"
+        class="submit-button"
+      >
+        @if (isLoading()) {
+          Logging in...
+        } @else {
+          Login
+        }
+      </button>
+
+      <div class="login-section">
+        <p class="login-text">
+          Don't have an account?
+          <button
+            type="button"
+            tuiLink
+            class="register-link"
+            (click)="navigateToRegister()"
+          >
+            Create one
+          </button>
+        </p>
+      </div>
+    </footer>
+
+    <!-- Сообщения об ошибках -->
+    @if (errorMessage()) {
+      <div class="server-error-message">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (isLoading()) {
+      <div class="loading-indicator">
+        Logging in...
+      </div>
+    }
+
+  </form>
+</div>

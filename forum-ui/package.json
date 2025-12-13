@@ -32,13 +32,13 @@
     "@taiga-ui/icons": "^4.63.0",
     "@taiga-ui/kit": "^4.63.0",
     "@taiga-ui/layout": "^4.63.0",
+    "ng": "^0.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
     "@angular/build": "^21.0.2",
-    "@angular/cli": "^21.0.2",
     "@angular/compiler-cli": "^21.0.3",
     "@types/jasmine": "~5.1.0",
     "angular-eslint": "21.0.1",
