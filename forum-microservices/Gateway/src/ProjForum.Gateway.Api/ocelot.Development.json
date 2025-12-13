@@ -20,6 +20,24 @@
           "Port":5001
         }
       ]
+    },
+    {
+      "SwaggerKey":"forum-service",
+      "UpstreamPathTemplate":"/api/forum/{everything}",
+      "UpstreamHttpMethod":[
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
+      "DownstreamPathTemplate":"/api/{everything}",
+      "DownstreamScheme":"http",
+      "DownstreamHostAndPorts":[
+        {
+          "Host":"localhost",
+          "Port":5002
+        }
+      ]
     }
   ],
   "SwaggerEndPoints":[
@@ -30,6 +48,16 @@
           "Name":"IdentityService API",
           "Version":"v1",
           "Url":"http://localhost:5001/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key":"forum-service",
+      "Config":[
+        {
+          "Name":"ForumService API",
+          "Version":"v1",
+          "Url":"http://localhost:5002/swagger/v1/swagger.json"
         }
       ]
     }

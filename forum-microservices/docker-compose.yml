@@ -1,4 +1,5 @@
 services:
+  #  Databases
   pfidentity_db:
     container_name: pfidentity_db
     image: postgres:17
@@ -8,45 +9,61 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123Qq123
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
       - postgres_pfidentity_data:/var/lib/postgresql/data
+  
+  pfforum_db:
+    container_name: pfforum_db
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_DB: PFForum
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123Qq123
+    ports:
+      - "5342:5432"
+    volumes:
+      - postgres_pfforum_data:/var/lib/postgresql/data
 
+  # Gateway
   project-forum-gateway:
     container_name: project-forum-gateway
     build:
       context: ./Gateway
     ports:
-      - "5000:8080"  
+      - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
-      
-#  pfforum_db:
-#    container_name: pfforum_db
-#    restart: always
-#    image: postgres
-#    environment:
-#      POSTGRES_DB: PFForum
-#      POSTGRES_USER: postgres
-#      POSTGRES_PASSWORD: 123Qq123
-#    ports:
-#      - 5434:5432
-#    volumes:
-#      - postgres_pfforum_data:/var/lib/postgresql/data
-
-  project-forum-identity-serivce:
-    container_name: project-forum-identity-serivce
+  
+  # Microservices
+  project-forum-identity-service:
+    container_name: project-forum-identity-service
     build:
       context: .
       dockerfile: IdentityService/src/ProjForum.Identity.Api/Dockerfile
     ports:
-      - "5001:8080"  
+      - "5001:8080"
     environment:
-      - JwtSettings__SecretKey=$"{JWT_SECRETKEY}"
+      - JwtSettings__SecretKey=${JWT_SECRETKEY}
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__PFIdentity=${DB_CONNECTION_STRING_PFI}
     depends_on:
       - pfidentity_db
+  
+  project-forum-forum-service:
+    container_name: project-forum-forum-service
+    build:
+      context: .
+      dockerfile: PostService/src/ProjForum.Forum.Api/Dockerfile
+    ports:
+      - "5002:8080"
+    environment:
+      - JwtSettings__SecretKey=${JWT_SECRETKEY}
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__PFForum=${DB_CONNECTION_STRING_PFF}
+    depends_on:
+      - pfforum_db
 
 volumes:
   postgres_pfidentity_data:
