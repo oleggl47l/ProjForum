@@ -1,0 +1,116 @@
+<div class="profile-container">
+  <tui-loader [showLoader]="isLoading()">
+    <div class="profile-wrapper">
+
+      <!-- Заголовок страницы -->
+      <div class="page-header">
+        <h1 class="profile-title">Личный кабинет</h1>
+      </div>
+
+      <!-- Сообщение об ошибке -->
+      @if (errorMessage()) {
+        <div class="error-message">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <!-- Вкладки -->
+      <div class="tabs-container">
+        <div class="tabs">
+          <button
+            class="tab-button"
+            [class.active]="activeItemIndex() === 0"
+            (click)="onActiveItemIndexChange(0)"
+          >
+            Профиль
+          </button>
+          <button
+            class="tab-button"
+            [class.active]="activeItemIndex() === 1"
+            (click)="onActiveItemIndexChange(1)"
+          >
+            Посты
+          </button>
+        </div>
+      </div>
+
+      <!-- Контент вкладок -->
+      <div class="tab-content">
+
+        <!-- Вкладка профиля -->
+        @if (activeItemIndex() === 0 && userData()) {
+          <div class="profile-card">
+            <h2 class="card-title">Информация о пользователе</h2>
+
+            <div class="user-info">
+              <div class="info-row">
+                <span class="info-label">Имя пользователя:</span>
+                <span class="info-value">{{ userData()?.userName }}</span>
+              </div>
+
+              <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ userData()?.email }}</span>
+              </div>
+
+              <div class="info-row">
+                <span class="info-label">Статус:</span>
+                <span class="info-value" [class.active]="userData()?.active" [class.inactive]="!userData()?.active">
+                  {{ userData()?.active ? 'Активен' : 'Неактивен' }}
+                </span>
+              </div>
+
+              @if (userData()?.roles && userData()!.roles!.length > 0) {
+                <div class="info-row">
+                  <span class="info-label">Роли:</span>
+                  <span class="info-value">{{ userData()!.roles!.join(', ') }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Вкладка постов -->
+        @if (activeItemIndex() === 1) {
+          <div class="posts-card">
+            <h2 class="card-title">Мои посты</h2>
+
+            <div class="posts-message">
+              <p>Здесь будут отображаться ваши посты. Функциональность будет добавлена позже, когда будет готов API для работы с постами.</p>
+            </div>
+
+            <div class="posts-list">
+              @for (post of posts(); track post.id) {
+                <div class="post-item">
+                  <h3 class="post-title">{{ post.title }}</h3>
+                  <p class="post-content">{{ post.content }}</p>
+                  <div class="post-date">{{ post.date }}</div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <!-- Кнопка выхода -->
+      <div class="logout-section">
+        <button
+          tuiButton
+          type="button"
+          appearance="negative"
+          (click)="onLogout()"
+          [disabled]="isLoading()"
+          class="logout-button"
+        >
+          @if (isLoading()) {
+            Выход...
+          } @else {
+            Выйти из профиля
+          }
+        </button>
+      </div>
+
+    </div>
+  </tui-loader>
+</div>

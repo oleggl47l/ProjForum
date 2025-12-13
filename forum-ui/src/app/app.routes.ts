@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import {LoginFormComponent} from './core/components/login-form/login-form.component';
 import {RegisterFormComponent} from './core/components/register-form/register-form.component';
+import {ProfilePageComponent} from './core/components/profile-page/profile-page.component';
 
 //TODO: для логина нужно будет добавить еще guard canActivate персональный и
 // для общего path тоже нужно будет добавить canActivate для предотварщения
@@ -66,10 +67,20 @@ import {RegisterFormComponent} from './core/components/register-form/register-fo
 //   });
 // };
 
+const authGuard = () => {
+  const token = localStorage.getItem('accessToken');
+
+  if (!token) {
+    return '/login';
+  }
+  return true;
+};
+
 export const routes: Routes = [
 
   { path: 'login', component: LoginFormComponent},
   { path: 'register', component: RegisterFormComponent},
+  { path: 'profile', component: ProfilePageComponent, canActivate: [authGuard],},
 
   {
     // пример
