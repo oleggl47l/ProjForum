@@ -85,10 +85,14 @@
       <button
         tuiButton
         type="submit"
-        [disabled]="form.invalid"
+        [disabled]="form.invalid || isLoading()"
         class="submit-button"
       >
-        Sign Up
+        @if (isLoading()) {
+          Processing...
+        } @else {
+          Sign Up
+        }
       </button>
 
       <div class="login-section">
@@ -105,5 +109,25 @@
         </p>
       </div>
     </footer>
+
+    <!-- Сообщения о состоянии -->
+    @if (errorMessage()) {
+      <div class="error-message" style="color: #e53e3e; padding: 10px; margin: 10px 0; border-radius: 8px; background: #fed7d7;">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="success-message" style="color: #38a169; padding: 10px; margin: 10px 0; border-radius: 8px; background: #c6f6d5;">
+        {{ successMessage() }}
+      </div>
+    }
+
+    @if (isLoading()) {
+      <div style="text-align: center; padding: 10px;">
+        Processing registration...
+      </div>
+    }
+
   </form>
 </div>

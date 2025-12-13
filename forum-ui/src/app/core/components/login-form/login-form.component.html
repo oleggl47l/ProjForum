@@ -62,10 +62,14 @@
       <button
         tuiButton
         type="submit"
-        [disabled]="form.invalid"
+        [disabled]="form.invalid || isLoading()"
         class="submit-button"
       >
-        Login
+        @if (isLoading()) {
+          Logging in...
+        } @else {
+          Login
+        }
       </button>
 
       <div class="login-section">
@@ -82,5 +86,19 @@
         </p>
       </div>
     </footer>
+
+    <!-- Сообщения об ошибках -->
+    @if (errorMessage()) {
+      <div class="server-error-message">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (isLoading()) {
+      <div class="loading-indicator">
+        Logging in...
+      </div>
+    }
+
   </form>
 </div>

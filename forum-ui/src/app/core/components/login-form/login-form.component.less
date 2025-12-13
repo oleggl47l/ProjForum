@@ -217,3 +217,33 @@
     font-size: 0.8125rem;
   }
 }
+
+.server-error-message {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #fed7d7;
+  color: #e53e3e;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.loading-indicator {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #ebf8ff;
+  color: #3182ce;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.submit-button {
+  // ... остальные стили
+
+  &[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #cbd5e0;
+  }
+}
