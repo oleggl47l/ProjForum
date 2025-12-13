@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123Qq123
     ports:
-      - "5432:5432"
+      - "5331:5432"
     volumes:
       - postgres_pfidentity_data:/var/lib/postgresql/data
   
@@ -22,7 +22,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123Qq123
     ports:
-      - "5342:5432"
+      - "5332:5432"
     volumes:
       - postgres_pfforum_data:/var/lib/postgresql/data
 
