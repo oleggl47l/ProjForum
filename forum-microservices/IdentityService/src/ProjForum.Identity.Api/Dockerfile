@@ -15,7 +15,6 @@ RUN dotnet restore IdentityService.sln
 
 COPY . .
 
-# 6. Публикуем
 RUN dotnet publish IdentityService/src/ProjForum.Identity.Api/ProjForum.Identity.Api.csproj -c Release -o /app/out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime

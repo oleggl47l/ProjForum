@@ -28,6 +28,8 @@ builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
+// builder.Services.AddScoped<DatabaseSeeder>();
+
 builder.Services.AddMediatR(cfg =>
 {
     cfg.Lifetime = ServiceLifetime.Scoped;
@@ -110,7 +112,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = jwtSettings["Issuer"],
             ClockSkew = TimeSpan.Zero,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException()))
         };
     });
 
