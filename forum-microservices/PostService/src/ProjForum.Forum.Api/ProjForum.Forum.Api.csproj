@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
       <UserSecretsId>c59f82e2-9f6e-4095-be1b-2032b5cd583b</UserSecretsId>
+      <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
     <ItemGroup>
@@ -28,6 +29,12 @@
     <ItemGroup>
       <ProjectReference Include="..\ProjForum.Forum.Application\ProjForum.Forum.Application.csproj" />
       <ProjectReference Include="..\ProjForum.Forum.Infrastructure\ProjForum.Forum.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>

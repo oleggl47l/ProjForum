@@ -12,7 +12,7 @@ using ProjForum.Identity.Infrastructure.Persistence;
 namespace ProjForum.Identity.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251018104527_Initial")]
+    [Migration("20251213183347_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
