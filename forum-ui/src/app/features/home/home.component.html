@@ -126,58 +126,39 @@
         </div>
 
         <div class="tags-content">
-          <!-- Окно поиска слева -->
-          <div class="tags-search-sidebar">
-            <div class="tags-search-container">
-              <input
-                type="search"
-                [(ngModel)]="tagSearchQuery"
-                (ngModelChange)="applyTagSearch()"
-                placeholder="Поиск тегов..."
-                class="tags-search-input"
-                aria-label="Поиск тегов"
-              />
-              @if (tagSearchQuery) {
-                <button
-                  class="clear-tag-search"
-                  (click)="clearTagSearch()"
-                  aria-label="Очистить поиск тегов"
-                  type="button"
-                >
-                  ×
-                </button>
-              }
-            </div>
-
-            <!-- Информация о поиске -->
+          <!-- Поиск слева -->
+          <div class="tags-search-container">
+            <input
+              type="search"
+              [(ngModel)]="tagSearchQuery"
+              (ngModelChange)="applyTagSearch()"
+              placeholder="Поиск тегов..."
+              class="tags-search-input"
+              aria-label="Поиск тегов"
+            />
+            @if (tagSearchQuery) {
+              <button
+                class="clear-tag-search"
+                (click)="clearTagSearch()"
+                aria-label="Очистить поиск тегов"
+                type="button"
+              >
+                ×
+              </button>
+            }
             @if (tagSearchQuery) {
               <div class="search-info">
-                Найдено: {{ filteredTags.length }} тег{{ filteredTags.length === 1 ? '' : 'а' }}
+                {{ filteredTags.length }} тег{{ filteredTags.length === 1 ? '' : 'а' }}
               </div>
             }
           </div>
 
-          <!-- Облако тегов справа -->
+          <!-- Облако тегов в середине -->
           <div class="tags-cloud-wrapper">
             <div class="tags-cloud-header">
           <span class="tags-count">
-            Теги: {{ filteredTags.length }}
+            {{ filteredTags.length }} тег{{ filteredTags.length === 1 ? '' : 'ов' }}
           </span>
-              <button
-                class="toggle-tags-btn"
-                (click)="toggleTagsExpanded()"
-                [attr.aria-expanded]="isTagsExpanded"
-                aria-label="{{ isTagsExpanded ? 'Свернуть теги' : 'Развернуть теги' }}"
-                type="button"
-              >
-                @if (isTagsExpanded) {
-                  <span class="toggle-icon">▲</span>
-                  <span class="toggle-text">Свернуть</span>
-                } @else {
-                  <span class="toggle-icon">▼</span>
-                  <span class="toggle-text">Показать все</span>
-                }
-              </button>
             </div>
 
             <div
@@ -195,7 +176,7 @@
                   [class.selected]="isTagSelected(tag.name || '')"
                   [attr.aria-pressed]="isTagSelected(tag.name || '')"
                   type="button"
-                  role="checkbox"
+                  role="check-box"
                 >
                   <span class="tag-text">{{ tag.name }}</span>
                   @if (isTagSelected(tag.name || '')) {
@@ -204,37 +185,60 @@
                 </button>
               }
             </div>
+          </div>
+
+          <!-- Кнопки управления справа -->
+          <div class="tags-controls">
+            <button
+              class="toggle-tags-btn"
+              (click)="toggleTagsExpanded()"
+              [attr.aria-expanded]="isTagsExpanded"
+              aria-label="{{ isTagsExpanded ? 'Свернуть теги' : 'Развернуть теги' }}"
+              type="button"
+            >
+              @if (isTagsExpanded) {
+                <span class="toggle-icon">▲</span>
+                <span class="toggle-text">Свернуть</span>
+              } @else {
+                <span class="toggle-icon">▼</span>
+                <span class="toggle-text">Показать все</span>
+              }
+            </button>
 
             @if (selectedTags.length > 0) {
-              <div class="selected-tags-preview">
-                <div class="preview-label">Выбранные теги:</div>
-                <div class="preview-tags">
-                  @for (tag of selectedTags; track tag) {
-                    <div class="preview-tag">
-                      {{ tag }}
-                      <button
-                        class="remove-preview-tag"
-                        (click)="toggleTagFilter(tag)"
-                        aria-label="Удалить тег {{ tag }}"
-                        type="button"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  }
-                  <button
-                    class="clear-all-tags"
-                    (click)="selectedTags = []; applyFilters()"
-                    aria-label="Очистить все теги"
-                    type="button"
-                  >
-                    Очистить все
-                  </button>
-                </div>
-              </div>
+              <button
+                class="clear-all-tags"
+                (click)="selectedTags = []; applyFilters()"
+                aria-label="Очистить все теги"
+                type="button"
+              >
+                Очистить
+              </button>
             }
           </div>
         </div>
+
+        <!-- Выбранные теги (отдельный блок) -->
+        @if (selectedTags.length > 0) {
+          <div class="selected-tags-preview">
+            <div class="preview-label">Выбранные теги:</div>
+            <div class="preview-tags">
+              @for (tag of selectedTags; track tag) {
+                <div class="preview-tag">
+                  {{ tag }}
+                  <button
+                    class="remove-preview-tag"
+                    (click)="toggleTagFilter(tag)"
+                    aria-label="Удалить тег {{ tag }}"
+                    type="button"
+                  >
+                    ×
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
       </div>
     }
 
