@@ -29,7 +29,7 @@
     "@taiga-ui/cdk": "^4.63.0",
     "@taiga-ui/core": "^4.63.0",
     "@taiga-ui/event-plugins": "^4.0.2",
-    "@taiga-ui/icons": "^4.63.0",
+    "@taiga-ui/icons": "^4.64.0",
     "@taiga-ui/kit": "^4.63.0",
     "@taiga-ui/layout": "^4.63.0",
     "ng": "^0.0.0",

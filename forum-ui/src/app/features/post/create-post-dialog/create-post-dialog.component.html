@@ -1,0 +1,196 @@
+@if (open) {
+  <div
+    class="dialog-overlay"
+    (click)="closeDialog()"
+    (keydown.enter)="closeDialog()"
+    (keydown.escape)="closeDialog()"
+    tabindex="0"
+    role="button"
+    aria-label="Закрыть диалог"
+  >
+    <div
+      #dialogContent
+      class="dialog-content"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      aria-labelledby="dialog-title"
+      aria-modal="true"
+    >
+      <h2 id="dialog-title" class="dialog-title">
+        <tui-icon icon="tuiIconFilePlus" size="m" class="dialog-icon"></tui-icon>
+        Создать новый пост
+      </h2>
+
+      <form (ngSubmit)="createPost()" class="post-form" #postForm="ngForm">
+        <!-- Заголовок -->
+        <div class="form-field">
+          <div class="field-label">
+            Заголовок
+            <span class="required">*</span>
+          </div>
+          <tui-textfield>
+            <input
+              tuiTextfield
+              id="title"
+              [(ngModel)]="post.title"
+              name="title"
+              required
+              [tuiAutoFocus]="true"
+              placeholder="Введите заголовок поста"
+              aria-required="true"
+              [disabled]="isLoading"
+            />
+          </tui-textfield>
+          <div class="field-hint">Будьте лаконичны, но информативны</div>
+        </div>
+
+        <!-- Категория -->
+        <div class="form-field">
+          <div class="field-label">
+            Категория
+            <span class="required">*</span>
+          </div>
+          <tui-textfield>
+            <select
+              id="category"
+              [(ngModel)]="post.categoryName"
+              name="categoryName"
+              required
+              aria-required="true"
+              [disabled]="isLoading"
+            >
+              <option value="">Выберите категорию</option>
+              @for (category of categories; track category.id) {
+                <option [value]="category.name">{{ category.name }}</option>
+              }
+            </select>
+          </tui-textfield>
+          <div class="field-hint">Выберите наиболее подходящую категорию</div>
+        </div>
+
+        <!-- Теги -->
+        <div class="form-field">
+          <div class="field-label">
+            Теги
+          </div>
+          <div class="tags-container">
+            <!-- Выбранные теги -->
+            <div class="selected-tags" role="list" aria-label="Выбранные теги">
+              @for (tag of post.tagNames; track tag; let i = $index) {
+                <div class="selected-tag" role="listitem">
+                  {{ tag }}
+                  <button
+                    type="button"
+                    class="remove-tag"
+                    (click)="removeTag(tag)"
+                    (keydown.enter)="removeTag(tag)"
+                    (keydown.space)="removeTag(tag)"
+                    aria-label="Удалить тег {{ tag }}"
+                  >
+                    ×
+                  </button>
+                </div>
+              }
+              <!-- Поле для добавления нового тега -->
+              <div class="add-tag-input">
+                <input
+                  type="text"
+                  [(ngModel)]="newTagInput"
+                  name="newTag"
+                  placeholder="Введите тег и нажмите Enter..."
+                  (keydown.enter)="addCustomTag($event)"
+                  [disabled]="isLoading"
+                  #tagInput
+                />
+                <button
+                  type="button"
+                  (click)="addCustomTag()"
+                  (keydown.enter)="addCustomTag()"
+                  (keydown.space)="addCustomTag()"
+                  [disabled]="!newTagInput.trim()"
+                >
+                  Добавить
+                </button>
+              </div>
+            </div>
+
+            <!-- Доступные теги -->
+            @if (availableTags.length > 0) {
+              <div class="field-description">Выберите из доступных тегов или добавьте свой:</div>
+              <div class="available-tags" role="group" aria-label="Доступные теги">
+                @for (tag of availableTags; track tag.id) {
+                  <button
+                    type="button"
+                    class="tag-option"
+                    [class.selected]="post.tagNames.includes(tag.name || '')"
+                    (click)="toggleTag(tag.name || '')"
+                    (keydown.enter)="toggleTag(tag.name || '')"
+                    (keydown.space)="toggleTag(tag.name || '')"
+                    [attr.aria-pressed]="post.tagNames.includes(tag.name || '')"
+                  >
+                    {{ tag.name }}
+                    @if (post.tagNames.includes(tag.name || '')) {
+                      <span class="tag-check">✓</span>
+                    }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Содержимое -->
+        <div class="form-field">
+          <div class="field-label">
+            Содержимое
+            <span class="required">*</span>
+          </div>
+          <tui-textfield>
+            <textarea
+              id="content"
+              [(ngModel)]="post.content"
+              name="content"
+              rows="8"
+              required
+              placeholder="Опишите детали вашего поста..."
+              aria-required="true"
+              [disabled]="isLoading"
+            ></textarea>
+          </tui-textfield>
+          <div class="field-description">Поддерживается Markdown-разметка</div>
+          <div class="field-hint">Можно использовать **жирный текст**, *курсив*, списки и ссылки</div>
+        </div>
+
+        <!-- Кнопки -->
+        <div class="dialog-actions">
+          <button
+            tuiButton
+            type="button"
+            appearance="flat"
+            (click)="closeDialog()"
+            (keydown.enter)="closeDialog()"
+            (keydown.space)="closeDialog()"
+            [disabled]="isLoading"
+            aria-label="Отменить создание поста"
+          >
+            Отмена
+          </button>
+          <button
+            tuiButton
+            type="submit"
+            appearance="primary"
+            [disabled]="!post.title || !post.content || !post.categoryName || isLoading"
+            aria-label="Создать новый пост"
+          >
+            @if (isLoading) {
+              <tui-loader size="xs" class="button-loader"></tui-loader>
+              Создание...
+            } @else {
+              Создать пост
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
