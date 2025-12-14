@@ -1,86 +1,111 @@
 <div class="home-container">
-  <!-- Хедер -->
-  <div class="page-header">
+  <!-- Заголовок по центру страницы -->
+  <div class="centered-header">
     <div class="header-content">
-      <h1 tuiTitle size="l">
-        <tui-icon icon="tuiIconMessageSquare" aria-hidden="true"></tui-icon>
-        Форум сообщества
+      <h1 tuiTitle size="xl" class="main-title">
+        Полифорум
       </h1>
+      <p class="header-subtitle"> </p>
       <p class="header-subtitle">Обсуждайте, делитесь, вдохновляйтесь</p>
     </div>
-
-    <button
-      tuiButton
-      size="m"
-      appearance="primary"
-      (click)="openCreatePostDialog()"
-      (keydown.enter)="openCreatePostDialog()"
-      (keydown.space)="openCreatePostDialog()"
-      class="create-post-btn"
-      aria-label="Создать новый пост"
-      type="button"
-    >
-      <tui-icon icon="tuiIconPlus" class="mr-2" aria-hidden="true"></tui-icon>
-      Создать пост
-    </button>
   </div>
 
-  <!-- Поиск -->
-  <div class="search-section">
-    <tui-textfield
-      [(ngModel)]="searchQuery"
-      (ngModelChange)="applyFilters()"
-      [tuiTextfieldCleaner]="true"
-      class="search-field"
-      aria-label="Поиск постов"
-    >
-      <tui-icon icon="tuiIconSearch" slot="left" aria-hidden="true"></tui-icon>
-      <input
-        tuiTextfield
-        type="search"
-        placeholder="Поиск постов..."
-        aria-describedby="search-description"
-      />
-    </tui-textfield>
-    <div id="search-description" class="sr-only">
-      Ищите по заголовку, содержанию или категории постов
+  <!-- Хедер с навигацией -->
+  <div class="page-header">
+    <div class="header-nav">
+      <div class="nav-right">
+        <button
+          tuiButton
+          size="m"
+          appearance="flat"
+          routerLink="/login"
+          class="auth-btn"
+          type="button"
+          aria-label="Войти в аккаунт"
+        >
+          Войти
+        </button>
+        <button
+          tuiButton
+          size="m"
+          appearance="primary"
+          routerLink="/profile"
+          class="auth-btn profile-btn"
+          type="button"
+          aria-label="Перейти в профиль"
+        >
+          Профиль
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Теги для фильтрации -->
-  @if (tags.length > 0) {
-    <div class="tags-filter-section">
-      <h3 tuiTitle size="s" class="tags-title">
-        <tui-icon icon="tuiIconTag" size="s" aria-hidden="true"></tui-icon>
-        Фильтр по тегам
-      </h3>
-      <div class="tags-cloud" role="group" aria-labelledby="tags-title">
-        @for (tag of tags; track tag.id) {
+  <!-- Основной контент -->
+  <div class="main-content">
+    <!-- Панель поиска и создания -->
+    <div class="actions-panel">
+      <div class="search-container">
+        <input
+          type="search"
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="applyFilters()"
+          placeholder="Поиск постов..."
+          class="search-input"
+          aria-label="Поиск постов"
+        />
+        @if (searchQuery) {
           <button
-            tuiBadge
-            [appearance]="selectedTags.includes(tag.name || '') ? 'primary' : 'secondary'"
-            (click)="toggleTagFilter(tag.name || '')"
-            (keydown.enter)="toggleTagFilter(tag.name || '')"
-            (keydown.space)="toggleTagFilter(tag.name || '')"
-            class="tag-filter-btn"
-            [attr.aria-pressed]="selectedTags.includes(tag.name || '')"
-            [attr.aria-label]="'Фильтр по тегу ' + (tag.name || '') + (selectedTags.includes(tag.name || '') ? ', выбран' : '')"
+            class="clear-search"
+            (click)="searchQuery = ''; applyFilters()"
+            aria-label="Очистить поиск"
             type="button"
-            role="checkbox"
           >
-            {{ tag.name }}
+            ×
           </button>
         }
       </div>
-    </div>
-  }
 
-  <!-- Основной контент -->
-  <main class="main-content" aria-label="Основной контент форума">
+      <button
+        tuiButton
+        size="m"
+        appearance="primary"
+        (click)="openCreatePostDialog()"
+        class="create-post-btn create-post-btn--highlighted"
+        aria-label="Создать новый пост"
+        type="button"
+      >
+        Создать пост
+      </button>
+    </div>
+
+    <!-- Компактный фильтр по тегам -->
+    @if (tags.length > 0) {
+      <div class="tags-filter-section">
+        <div class="tags-header">
+          <h3 tuiTitle size="s" style="margin: 0;">Теги:</h3>
+        </div>
+        <div class="tags-cloud" role="group" aria-labelledby="tags-title">
+          @for (tag of tags; track tag.id) {
+            <button
+              tuiBadge
+              [appearance]="selectedTags.includes(tag.name || '') ? 'primary' : 'secondary'"
+              (click)="toggleTagFilter(tag.name || '')"
+              class="tag-filter-btn"
+              [attr.aria-pressed]="selectedTags.includes(tag.name || '')"
+              type="button"
+              role="check-box"
+            >
+              {{ tag.name }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
     <!-- Список постов -->
     <div class="posts-section">
       <div class="section-header">
-        <h2 tuiTitle size="m">Посты сообщества</h2>
+        <h2 tuiTitle size="m" class="section-subtitle">Посты сообщества</h2>
         <div class="posts-count" aria-live="polite" aria-atomic="true">
           Показано {{ filteredPosts.length }} из {{ posts.length }}
         </div>
@@ -93,7 +118,6 @@
         </div>
       } @else if (posts.length === 0) {
         <div class="empty-state" role="alert">
-          <tui-icon icon="tuiIconFileText" size="xl" aria-hidden="true"></tui-icon>
           <h3 tuiTitle size="s">Постов не найдено</h3>
           <p>Попробуйте изменить параметры фильтрации</p>
           <button
@@ -101,8 +125,6 @@
             size="m"
             appearance="outline"
             (click)="clearFilters()"
-            (keydown.enter)="clearFilters()"
-            (keydown.space)="clearFilters()"
             type="button"
             aria-label="Сбросить все фильтры"
           >
@@ -122,7 +144,7 @@
               <a
                 [routerLink]="['/post', post.id]"
                 class="post-link"
-                [attr.aria-label]="'Пост: ' + (post.title || '') + (post.category ? ', категория: ' + post.category : '')"
+                [attr.aria-label]="'Пост: ' + (post.title || '')"
               >
                 <div class="post-card" [class.draft]="!post.isPublished">
                   <!-- Заголовок поста -->
@@ -135,7 +157,6 @@
                         <div class="author-details">
                           <span class="author-id">Пользователь {{ post.authorId?.substring(0, 8) }}</span>
                           <span class="post-date">
-                            <tui-icon icon="tuiIconClock" size="s" aria-hidden="true"></tui-icon>
                             {{ formatDate(post.createdAt) }}
                           </span>
                         </div>
@@ -145,7 +166,6 @@
                     @if (post.category) {
                       <div
                         class="category-badge"
-                        [style.background]="getCategoryColor(post.category)"
                         aria-label="Категория: {{ post.category }}"
                       >
                         {{ post.category }}
@@ -155,7 +175,7 @@
 
                   <!-- Контент поста -->
                   <div class="post-body">
-                    <h3 tuiTitle size="m" class="post-title">
+                    <h3 class="post-title">
                       {{ post.title }}
                       @if (!post.isPublished) {
                         <tui-badge
@@ -177,7 +197,6 @@
                       <div class="post-tags" role="group" aria-label="Теги поста">
                         @for (tag of post.tagNames; track tag) {
                           <span class="post-tag">
-                            <tui-icon icon="tuiIconTag" size="s" aria-hidden="true"></tui-icon>
                             {{ tag }}
                           </span>
                         }
@@ -195,8 +214,7 @@
                         tabindex="0"
                         role="tooltip"
                       >
-                        <tui-icon icon="tuiIconEye" size="s" aria-hidden="true"></tui-icon>
-                        0
+                        0 просмотров
                       </span>
                       <span
                         tuiHint="Комментарии"
@@ -205,8 +223,7 @@
                         tabindex="0"
                         role="tooltip"
                       >
-                        <tui-icon icon="tuiIconMessageSquare" size="s" aria-hidden="true"></tui-icon>
-                        0
+                        0 комментариев
                       </span>
                     </div>
                   </div>
@@ -229,30 +246,12 @@
         }
       }
     </div>
-  </main>
+  </div>
 
-  <!-- Временное сообщение вместо диалога -->
-  @if (isCreatingPost) {
-    <div
-      class="dialog-overlay"
-      role="dialog"
-      aria-labelledby="dialog-title"
-      aria-modal="true"
-    >
-      <div class="dialog">
-        <h3 id="dialog-title">Создание поста</h3>
-        <p>Функция создания поста будет доступна позже</p>
-        <button
-          tuiButton
-          (click)="onPostCreated()"
-          (keydown.enter)="onPostCreated()"
-          (keydown.space)="onPostCreated()"
-          type="button"
-          aria-label="Закрыть диалог создания поста"
-        >
-          Закрыть
-        </button>
-      </div>
-    </div>
-  }
+  <!-- Диалог создания поста -->
+  <app-create-post-dialog
+    [open]="isCreatePostDialogOpen"
+    (closed)="closeCreatePostDialog()"
+    (postCreated)="onPostCreated()"
+  ></app-create-post-dialog>
 </div>

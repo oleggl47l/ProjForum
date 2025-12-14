@@ -3,22 +3,23 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
-// Taiga UI Core - только проверенные компоненты
+// Taiga UI Core для standalone
 import {
   TuiButton,
   TuiLoader,
   TuiHint,
-  TuiIcon,
-  TuiTitle,
-  TuiTextfield
+  TuiTitle
 } from '@taiga-ui/core';
 
-// Taiga UI Kit - только ТЕ что точно есть
+// Taiga UI Kit для standalone
 import {
   TuiAvatar,
   TuiBadge,
   TuiPagination
 } from '@taiga-ui/kit';
+
+// Импортируем компонент диалога
+import { CreatePostDialogComponent } from '../post/create-post-dialog/create-post-dialog.component';
 
 // Временные интерфейсы
 interface PostModel {
@@ -52,18 +53,19 @@ interface TagModel {
     FormsModule,
     RouterModule,
 
-    // Taiga UI Core
+    // Taiga UI Core - компоненты
     TuiButton,
     TuiLoader,
     TuiHint,
-    TuiIcon,
     TuiTitle,
-    TuiTextfield,
 
-    // Taiga UI Kit - минимальный набор
+    // Taiga UI Kit - компоненты
     TuiAvatar,
     TuiBadge,
-    TuiPagination
+    TuiPagination,
+
+    // Диалог создания поста
+    CreatePostDialogComponent
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.less']
@@ -77,7 +79,6 @@ export class HomeComponent implements OnInit {
 
   // Состояние
   isLoading = false;
-  isCreatingPost = false;
   searchQuery = '';
   selectedTags: string[] = [];
   sortBy: 'newest' | 'oldest' = 'newest';
@@ -88,6 +89,9 @@ export class HomeComponent implements OnInit {
   showFilters = false;
   showDrafts = false;
   selectedCategory: string | null = null;
+
+  // Диалог создания поста
+  isCreatePostDialogOpen = false;
 
   ngOnInit(): void {
     this.loadInitialData();
@@ -140,7 +144,10 @@ export class HomeComponent implements OnInit {
       this.tags = [
         { id: '1', name: 'angular' },
         { id: '2', name: 'typescript' },
-        { id: '3', name: 'frontend' }
+        { id: '3', name: 'frontend' },
+        { id: '4', name: 'programming' },
+        { id: '5', name: 'announcement' },
+        { id: '6', name: 'update' }
       ];
 
       this.applyFilters();
@@ -239,12 +246,35 @@ export class HomeComponent implements OnInit {
     return index !== -1 ? colors[index % colors.length] : colors[0];
   }
 
+  // Методы для работы с диалогом создания поста
   openCreatePostDialog(): void {
-    this.isCreatingPost = true;
+    this.isCreatePostDialogOpen = true;
+  }
+
+  closeCreatePostDialog(): void {
+    this.isCreatePostDialogOpen = false;
   }
 
   onPostCreated(): void {
-    this.isCreatingPost = false;
-    this.loadInitialData();
+    console.log('Новый пост создан');
+    this.closeCreatePostDialog();
+
+    // Здесь можно добавить логику для обновления списка постов
+    // Например, перезагрузить данные или добавить новый пост вручную
+
+    // Временный пример добавления мокового поста
+    const newPost: PostModel = {
+      id: (this.allPosts.length + 1).toString(),
+      title: 'Новый пост',
+      content: 'Этот пост был создан через диалог',
+      authorId: 'current-user',
+      category: 'Обсуждение',
+      createdAt: new Date().toISOString(),
+      isPublished: true,
+      tagNames: ['новое']
+    };
+
+    this.allPosts.unshift(newPost); // Добавляем в начало списка
+    this.applyFilters(); // Применяем фильтры
   }
 }
