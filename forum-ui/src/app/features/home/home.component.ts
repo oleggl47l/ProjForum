@@ -18,8 +18,8 @@ import {
   TuiPagination
 } from '@taiga-ui/kit';
 
-// Импортируем компонент диалога
-import { CreatePostDialogComponent } from '../post/create-post-dialog/create-post-dialog.component';
+// Импортируем компонент диалога и его интерфейс
+import { CreatePostDialogComponent, NewPostData } from '../post/create-post-dialog/create-post-dialog.component';
 
 // Временные интерфейсы
 interface PostModel {
@@ -75,11 +75,13 @@ export class HomeComponent implements OnInit {
   posts: PostModel[] = [];
   allPosts: PostModel[] = [];
   categories: CategoryModel[] = [];
-  tags: TagModel[] = [];
+  allTags: TagModel[] = []; // Все теги
+  filteredTags: TagModel[] = []; // Отфильтрованные теги для отображения
 
   // Состояние
   isLoading = false;
   searchQuery = '';
+  tagSearchQuery = ''; // Поиск по тегам
   selectedTags: string[] = [];
   sortBy: 'newest' | 'oldest' = 'newest';
   currentPage = 0;
@@ -92,6 +94,9 @@ export class HomeComponent implements OnInit {
 
   // Диалог создания поста
   isCreatePostDialogOpen = false;
+
+  // Состояние развернутости тегов
+  isTagsExpanded = false;
 
   ngOnInit(): void {
     this.loadInitialData();
@@ -138,18 +143,26 @@ export class HomeComponent implements OnInit {
       this.categories = [
         { id: '1', name: 'Обсуждение', description: 'Общие обсуждения' },
         { id: '2', name: 'Вопрос', description: 'Вопросы и ответы' },
-        { id: '3', name: 'Новости', description: 'Новости проекта' }
+        { id: '3', name: 'Новости', description: 'Новости проекта' },
+        { id: '4', name: 'Руководство', description: 'Инструкции и руководства' },
+        { id: '5', name: 'Объявление', description: 'Официальные объявления' }
       ];
 
-      this.tags = [
+      // Начальный список тегов
+      this.allTags = [
         { id: '1', name: 'angular' },
         { id: '2', name: 'typescript' },
         { id: '3', name: 'frontend' },
         { id: '4', name: 'programming' },
         { id: '5', name: 'announcement' },
-        { id: '6', name: 'update' }
+        { id: '6', name: 'update' },
+        { id: '7', name: 'javascript' },
+        { id: '8', name: 'css' },
+        { id: '9', name: 'html' },
+        { id: '10', name: 'web' }
       ];
 
+      this.filteredTags = [...this.allTags];
       this.applyFilters();
       this.isLoading = false;
     }, 500);
@@ -198,6 +211,24 @@ export class HomeComponent implements OnInit {
     this.currentPage = 0;
   }
 
+  // Поиск по тегам
+  applyTagSearch(): void {
+    if (this.tagSearchQuery.trim()) {
+      const query = this.tagSearchQuery.toLowerCase();
+      this.filteredTags = this.allTags.filter(tag =>
+        tag.name?.toLowerCase().includes(query)
+      );
+    } else {
+      this.filteredTags = [...this.allTags];
+    }
+  }
+
+  // Очистить поиск по тегам
+  clearTagSearch(): void {
+    this.tagSearchQuery = '';
+    this.applyTagSearch();
+  }
+
   toggleTagFilter(tagName: string): void {
     const index = this.selectedTags.indexOf(tagName);
     if (index > -1) {
@@ -208,12 +239,33 @@ export class HomeComponent implements OnInit {
     this.applyFilters();
   }
 
+  // Проверка, является ли тег выбранным
+  isTagSelected(tagName: string): boolean {
+    return this.selectedTags.includes(tagName);
+  }
+
+  // Получить стиль для подсветки тега
+  getTagAppearance(tagName: string): string {
+    return this.isTagSelected(tagName) ? 'primary' : 'secondary';
+  }
+
+  // Переключение состояния развернутости тегов
+  toggleTagsExpanded(): void {
+    this.isTagsExpanded = !this.isTagsExpanded;
+  }
+
   clearFilters(): void {
     this.searchQuery = '';
     this.selectedTags = [];
     this.selectedCategory = null;
     this.showDrafts = false;
     this.sortBy = 'newest';
+    this.applyFilters();
+  }
+
+  // Сортировка по категории
+  sortByCategory(category: string | null): void {
+    this.selectedCategory = category;
     this.applyFilters();
   }
 
@@ -241,7 +293,7 @@ export class HomeComponent implements OnInit {
   }
 
   getCategoryColor(categoryName: string): string {
-    const colors = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0'];
+    const colors = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#E91E63'];
     const index = this.categories.findIndex(c => c.name === categoryName);
     return index !== -1 ? colors[index % colors.length] : colors[0];
   }
@@ -255,26 +307,49 @@ export class HomeComponent implements OnInit {
     this.isCreatePostDialogOpen = false;
   }
 
-  onPostCreated(): void {
-    console.log('Новый пост создан');
-    this.closeCreatePostDialog();
+  // Обновленный метод для обработки созданного поста
+  onPostCreated(newPostData: NewPostData): void {
+    console.log('Получены данные нового поста:', newPostData);
 
-    // Здесь можно добавить логику для обновления списка постов
-    // Например, перезагрузить данные или добавить новый пост вручную
+    // Генерируем уникальный ID для нового поста
+    const newPostId = (this.allPosts.length + 1).toString();
+    const currentUserId = 'user-' + Math.random().toString(36).substr(2, 8);
 
-    // Временный пример добавления мокового поста
+    // Создаем новый пост с данными из диалога
     const newPost: PostModel = {
-      id: (this.allPosts.length + 1).toString(),
-      title: 'Новый пост',
-      content: 'Этот пост был создан через диалог',
-      authorId: 'current-user',
-      category: 'Обсуждение',
+      id: newPostId,
+      title: newPostData.title,
+      content: newPostData.content,
+      authorId: currentUserId,
+      category: newPostData.categoryName,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       isPublished: true,
-      tagNames: ['новое']
+      tagNames: [...newPostData.tagNames]
     };
 
-    this.allPosts.unshift(newPost); // Добавляем в начало списка
-    this.applyFilters(); // Применяем фильтры
+    // Добавляем пост в начало списка
+    this.allPosts.unshift(newPost);
+
+    // Добавляем новые теги в общий список, если их там нет
+    newPostData.tagNames.forEach(tagName => {
+      const tagExists = this.allTags.some(tag => tag.name === tagName);
+      if (!tagExists) {
+        const newTagId = (this.allTags.length + 1).toString();
+        this.allTags.push({ id: newTagId, name: tagName });
+      }
+    });
+
+    // Обновляем отфильтрованные теги
+    this.applyTagSearch();
+
+    // Применяем фильтры
+    this.applyFilters();
+
+    // Закрываем диалог
+    this.closeCreatePostDialog();
+
+    // Показываем уведомление или выполняем другие действия
+    console.log('Пост успешно добавлен:', newPost);
   }
 }

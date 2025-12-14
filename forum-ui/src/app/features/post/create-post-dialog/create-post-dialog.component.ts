@@ -8,13 +8,20 @@ import { Inject } from '@angular/core';
 import {
   TuiButton,
   TuiTextfield,
-  TuiLabel,
   TuiIcon,
   TuiLoader
-} from '@taiga-ui/core';
+} from '@taiga-ui/core'; // УБРАЛИ TuiLabel
 
 // Taiga UI CDK
 import { TuiAutoFocus } from '@taiga-ui/cdk';
+
+// Интерфейс для создаваемого поста
+export interface NewPostData {
+  title: string;
+  content: string;
+  categoryName: string;
+  tagNames: string[];
+}
 
 @Component({
   selector: 'app-create-post-dialog',
@@ -26,8 +33,7 @@ import { TuiAutoFocus } from '@taiga-ui/cdk';
     // Taiga UI Core
     TuiButton,
     TuiTextfield,
-    TuiLabel,
-    TuiIcon,
+    TuiIcon, // ОСТАВИЛИ ТОЛЬКО TuiIcon
     TuiLoader,
 
     // Taiga UI CDK
@@ -53,7 +59,7 @@ export class CreatePostDialogComponent implements OnDestroy {
   private _open = false;
 
   @Output() closed = new EventEmitter<void>();
-  @Output() postCreated = new EventEmitter<void>();
+  @Output() postCreated = new EventEmitter<NewPostData>();
 
   post = {
     title: '',
@@ -205,13 +211,17 @@ export class CreatePostDialogComponent implements OnDestroy {
 
     // Имитация запроса к API
     setTimeout(() => {
-      console.log('Создан пост:', {
-        ...this.post,
+      console.log('Создан пост:', this.post);
+
+      // Эмитируем событие с данными поста
+      this.postCreated.emit({
+        title: this.post.title,
+        content: this.post.content,
+        categoryName: this.post.categoryName,
         tagNames: [...this.post.tagNames]
       });
 
       this.isLoading = false;
-      this.postCreated.emit();
       this.resetForm();
     }, 1500);
   }

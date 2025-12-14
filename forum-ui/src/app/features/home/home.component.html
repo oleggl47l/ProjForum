@@ -5,7 +5,7 @@
       <h1 tuiTitle size="xl" class="main-title">
         Полифорум
       </h1>
-      <p class="header-subtitle"> </p>
+      <p class="header-subtitle"></p>
       <p class="header-subtitle">Обсуждайте, делитесь, вдохновляйтесь</p>
     </div>
   </div>
@@ -78,26 +78,162 @@
       </button>
     </div>
 
-    <!-- Компактный фильтр по тегам -->
-    @if (tags.length > 0) {
-      <div class="tags-filter-section">
-        <div class="tags-header">
-          <h3 tuiTitle size="s" style="margin: 0;">Теги:</h3>
+    <!-- Фильтр по категориям -->
+    @if (categories.length > 0) {
+      <div class="categories-filter-section">
+        <div class="categories-header">
+          <h3 tuiTitle size="s" style="margin: 0;">Категории:</h3>
         </div>
-        <div class="tags-cloud" role="group" aria-labelledby="tags-title">
-          @for (tag of tags; track tag.id) {
+        <div class="categories-list" role="group" aria-label="Категории">
+          <button
+            tuiBadge
+            [appearance]="selectedCategory === null ? 'primary' : 'secondary'"
+            (click)="sortByCategory(null)"
+            class="category-filter-btn"
+            type="button"
+          >
+            Все категории
+          </button>
+          @for (category of categories; track category.id) {
             <button
               tuiBadge
-              [appearance]="selectedTags.includes(tag.name || '') ? 'primary' : 'secondary'"
-              (click)="toggleTagFilter(tag.name || '')"
-              class="tag-filter-btn"
-              [attr.aria-pressed]="selectedTags.includes(tag.name || '')"
+              [appearance]="selectedCategory === category.name ? 'primary' : 'secondary'"
+              (click)="sortByCategory(category.name || '')"
+              class="category-filter-btn"
               type="button"
-              role="check-box"
             >
-              {{ tag.name }}
+              {{ category.name }}
             </button>
           }
+        </div>
+      </div>
+    }
+
+
+    <!-- Компактный фильтр по тегам -->
+    @if (allTags.length > 0) {
+      <div class="tags-filter-section">
+        <div class="tags-header">
+          <div class="tags-title-container">
+            <h3 tuiTitle size="s" style="margin: 0;">Теги:</h3>
+            @if (selectedTags.length > 0) {
+              <div class="selected-tags-counter">
+                <span class="counter-number">{{ selectedTags.length }}</span>
+                <span class="counter-text">выбрано</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="tags-content">
+          <!-- Окно поиска слева -->
+          <div class="tags-search-sidebar">
+            <div class="tags-search-container">
+              <input
+                type="search"
+                [(ngModel)]="tagSearchQuery"
+                (ngModelChange)="applyTagSearch()"
+                placeholder="Поиск тегов..."
+                class="tags-search-input"
+                aria-label="Поиск тегов"
+              />
+              @if (tagSearchQuery) {
+                <button
+                  class="clear-tag-search"
+                  (click)="clearTagSearch()"
+                  aria-label="Очистить поиск тегов"
+                  type="button"
+                >
+                  ×
+                </button>
+              }
+            </div>
+
+            <!-- Информация о поиске -->
+            @if (tagSearchQuery) {
+              <div class="search-info">
+                Найдено: {{ filteredTags.length }} тег{{ filteredTags.length === 1 ? '' : 'а' }}
+              </div>
+            }
+          </div>
+
+          <!-- Облако тегов справа -->
+          <div class="tags-cloud-wrapper">
+            <div class="tags-cloud-header">
+          <span class="tags-count">
+            Теги: {{ filteredTags.length }}
+          </span>
+              <button
+                class="toggle-tags-btn"
+                (click)="toggleTagsExpanded()"
+                [attr.aria-expanded]="isTagsExpanded"
+                aria-label="{{ isTagsExpanded ? 'Свернуть теги' : 'Развернуть теги' }}"
+                type="button"
+              >
+                @if (isTagsExpanded) {
+                  <span class="toggle-icon">▲</span>
+                  <span class="toggle-text">Свернуть</span>
+                } @else {
+                  <span class="toggle-icon">▼</span>
+                  <span class="toggle-text">Показать все</span>
+                }
+              </button>
+            </div>
+
+            <div
+              class="tags-cloud"
+              role="group"
+              aria-labelledby="tags-title"
+              [class.expanded]="isTagsExpanded"
+            >
+              @for (tag of filteredTags; track tag.id) {
+                <button
+                  tuiBadge
+                  [appearance]="getTagAppearance(tag.name || '')"
+                  (click)="toggleTagFilter(tag.name || '')"
+                  class="tag-filter-btn"
+                  [class.selected]="isTagSelected(tag.name || '')"
+                  [attr.aria-pressed]="isTagSelected(tag.name || '')"
+                  type="button"
+                  role="checkbox"
+                >
+                  <span class="tag-text">{{ tag.name }}</span>
+                  @if (isTagSelected(tag.name || '')) {
+                    <span class="tag-check">✓</span>
+                  }
+                </button>
+              }
+            </div>
+
+            @if (selectedTags.length > 0) {
+              <div class="selected-tags-preview">
+                <div class="preview-label">Выбранные теги:</div>
+                <div class="preview-tags">
+                  @for (tag of selectedTags; track tag) {
+                    <div class="preview-tag">
+                      {{ tag }}
+                      <button
+                        class="remove-preview-tag"
+                        (click)="toggleTagFilter(tag)"
+                        aria-label="Удалить тег {{ tag }}"
+                        type="button"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  }
+                  <button
+                    class="clear-all-tags"
+                    (click)="selectedTags = []; applyFilters()"
+                    aria-label="Очистить все теги"
+                    type="button"
+                  >
+                    Очистить все
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
         </div>
       </div>
     }
@@ -107,7 +243,21 @@
       <div class="section-header">
         <h2 tuiTitle size="m" class="section-subtitle">Посты сообщества</h2>
         <div class="posts-count" aria-live="polite" aria-atomic="true">
-          Показано {{ filteredPosts.length }} из {{ posts.length }}
+          <span class="count-text">
+            Показано {{ filteredPosts.length }} из {{ posts.length }}
+          </span>
+          @if (selectedCategory) {
+            <span class="category-filter-info">
+              <span class="filter-icon">📂</span>
+              {{ selectedCategory }}
+            </span>
+          }
+          @if (selectedTags.length > 0) {
+            <span class="tags-filter-info">
+              <span class="filter-icon">🏷️</span>
+              {{ selectedTags.length }} тег{{ selectedTags.length > 1 ? 'а' : '' }}
+            </span>
+          }
         </div>
       </div>
 
@@ -196,8 +346,15 @@
                     @if (post.tagNames && post.tagNames.length > 0) {
                       <div class="post-tags" role="group" aria-label="Теги поста">
                         @for (tag of post.tagNames; track tag) {
-                          <span class="post-tag">
+                          <span
+                            class="post-tag"
+                            [class.highlighted]="isTagSelected(tag)"
+                            (click)="$event.preventDefault(); toggleTagFilter(tag)"
+                          >
                             {{ tag }}
+                            @if (isTagSelected(tag)) {
+                              <span class="post-tag-check">✓</span>
+                            }
                           </span>
                         }
                       </div>
@@ -214,6 +371,7 @@
                         tabindex="0"
                         role="tooltip"
                       >
+                        <span class="stat-icon">👁️</span>
                         0 просмотров
                       </span>
                       <span
@@ -223,6 +381,7 @@
                         tabindex="0"
                         role="tooltip"
                       >
+                        <span class="stat-icon">💬</span>
                         0 комментариев
                       </span>
                     </div>
@@ -252,6 +411,6 @@
   <app-create-post-dialog
     [open]="isCreatePostDialogOpen"
     (closed)="closeCreatePostDialog()"
-    (postCreated)="onPostCreated()"
+    (postCreated)="onPostCreated($event)"
   ></app-create-post-dialog>
 </div>
