@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { TuiButton, TuiLoader } from '@taiga-ui/core';
+import {
+  TuiButton,
+  TuiLoader,
+} from '@taiga-ui/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, lastValueFrom } from 'rxjs';
 import { logoutUser } from '../../../api/fn/auth/logout-user';
@@ -31,16 +34,27 @@ export class ProfilePageComponent implements OnInit {
 
   // Заглушка постов
   protected readonly posts = signal([
-    { id: 1, title: 'Мой первый пост', content: 'Содержание первого поста...', date: '2024-12-10' },
-    { id: 2, title: 'Второй пост', content: 'Содержание второго поста...', date: '2024-12-11' },
+    {
+      id: 1,
+      title: 'Мой первый пост',
+      content: 'Содержание первого поста...',
+      date: '2024-12-10',
+    },
+    {
+      id: 2,
+      title: 'Второй пост',
+      content: 'Содержание второго поста...',
+      date: '2024-12-11',
+    },
   ]);
 
-  async ngOnInit(): Promise<void> {
-    await this.loadUserData();
+  ngOnInit(): void {
+    // Убираем await, так как это не асинхронный метод
+    this.loadUserData();
   }
 
   // Получение данных пользователя
-  private async loadUserData(): Promise<void> {
+  private loadUserData(): void {
     // Проверяем, авторизован ли пользователь
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -55,7 +69,9 @@ export class ProfilePageComponent implements OnInit {
       // В реальном приложении здесь нужно получить userId из токена
       // Для демо используем заглушку - нужно будет доработать
       // Пока что просто проверяем авторизацию
-      this.errorMessage.set('Для получения данных пользователя нужен userId. Пока используем заглушку.');
+      this.errorMessage.set(
+        'Для получения данных пользователя нужен userId. Пока используем заглушку.'
+      );
 
       // Заглушка данных
       this.userData.set({
@@ -64,9 +80,8 @@ export class ProfilePageComponent implements OnInit {
         email: 'test@example.com',
         active: true,
         accessFailedCount: 0,
-        roles: ['User']
+        roles: ['User'],
       } as UserDto);
-
     } catch (error: unknown) {
       console.error('Error loading user data:', error);
       this.errorMessage.set('Ошибка загрузки данных пользователя');
@@ -87,11 +102,7 @@ export class ProfilePageComponent implements OnInit {
 
     try {
       // Используем сгенерированную функцию logoutUser
-      const observable = logoutUser(
-        this.http,
-        this.apiConfig.rootUrl,
-        {}
-      ).pipe(
+      const observable = logoutUser(this.http, this.apiConfig.rootUrl, {}).pipe(
         catchError((error: HttpErrorResponse) => {
           console.error('Logout error:', error);
 
@@ -117,7 +128,6 @@ export class ProfilePageComponent implements OnInit {
 
       console.log('Logout successful');
       this.router.navigate(['/login']);
-
     } catch (error: unknown) {
       console.error('Unexpected logout error:', error);
       // Даже если ошибка, очищаем локально и перенаправляем

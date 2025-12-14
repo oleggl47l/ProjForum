@@ -2,7 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TuiButton, TuiError, TuiLink, TuiTextfield, TuiTitle } from '@taiga-ui/core';
+import {TuiButton, TuiError, TuiLink, TuiNotification, TuiTextfield, TuiTitle} from '@taiga-ui/core';
 import { TuiFieldErrorPipe } from '@taiga-ui/kit';
 import { TuiCardLarge, TuiForm, TuiHeader } from '@taiga-ui/layout';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
@@ -27,6 +27,7 @@ import { StrictHttpResponse } from '../../../api/strict-http-response';
     TuiLink,
     TuiTextfield,
     TuiTitle,
+    TuiNotification,
   ],
   templateUrl: './register-form.component.html',
   styleUrls: ['./register-form.component.less'],
@@ -43,9 +44,15 @@ export class RegisterFormComponent {
   protected readonly successMessage = signal<string | null>(null);
 
   protected readonly form = new FormGroup({
-    username: new FormControl('', [Validators.required, Validators.minLength(3)]),
+    username: new FormControl('', [
+      Validators.required,
+      Validators.minLength(3),
+    ]),
     email: new FormControl('', [Validators.required, Validators.email]),
-    password: new FormControl('', [Validators.required, Validators.minLength(6)]),
+    password: new FormControl('', [
+      Validators.required,
+      Validators.minLength(6),
+    ]),
   });
 
   async onSubmit(): Promise<void> {
@@ -59,7 +66,7 @@ export class RegisterFormComponent {
         userName: this.form.value.username || '',
         email: this.form.value.email || '',
         password: this.form.value.password || '',
-        roles: ['User'] // Роль по умолчанию
+        roles: ['User'], // Роль по умолчанию
       };
 
       console.log('Sending registration data:', registerData);
@@ -79,7 +86,9 @@ export class RegisterFormComponent {
 
             // Проверяем success как boolean
             if (result?.success === true) {
-              this.successMessage.set('Registration successful! You can now log in.');
+              this.successMessage.set(
+                'Registration successful! You can now log in.'
+              );
               this.form.reset();
 
               // Автоматический переход на страницу логина через 2 секунды
@@ -88,7 +97,8 @@ export class RegisterFormComponent {
               }, 2000);
             } else {
               // Если success = false или undefined
-              const errorMsg = result?.message || 'Registration failed (unknown reason)';
+              const errorMsg =
+                result?.message || 'Registration failed (unknown reason)';
               console.error('Registration failed:', errorMsg);
               this.errorMessage.set(errorMsg);
             }
@@ -114,10 +124,11 @@ export class RegisterFormComponent {
 
         // Используем lastValueFrom вместо deprecated toPromise()
         await lastValueFrom(observable);
-
       } catch (error: unknown) {
         console.error('Unexpected error:', error);
-        this.errorMessage.set('An unexpected error occurred. Please try again.');
+        this.errorMessage.set(
+          'An unexpected error occurred. Please try again.'
+        );
       } finally {
         this.isLoading.set(false);
       }
@@ -142,12 +153,15 @@ export class RegisterFormComponent {
   }
 
   navigateToLogin(): void {
-    this.router.navigate(['/login']).then(success => {
-      if (!success) {
-        console.error('Navigation to login page failed');
-      }
-    }).catch(error => {
-      console.error('Navigation error:', error);
-    });
+    this.router
+      .navigate(['/login'])
+      .then(success => {
+        if (!success) {
+          console.error('Navigation to login page failed');
+        }
+      })
+      .catch(error => {
+        console.error('Navigation error:', error);
+      });
   }
 }
