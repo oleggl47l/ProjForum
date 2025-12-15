@@ -76,6 +76,11 @@ export class ProfilePageComponent implements OnInit {
     });
   }
 
+  // Переход на главную страницу
+  protected async goHome(): Promise<void> {
+    await this.router.navigate(['/home']);
+  }
+
   // Получение данных текущего пользователя
   private async loadUserData(): Promise<void> {
     // Проверяем авторизацию
