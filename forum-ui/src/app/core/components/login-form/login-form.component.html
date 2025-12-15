@@ -8,19 +8,19 @@
   >
     <header tuiHeader class="login-header">
       <h2 tuiTitle class="login-title">
-        Login
-        <span tuiSubtitle class="login-subtitle">Enter your credentials</span>
+        Вход
+        <span tuiSubtitle class="login-subtitle">Введите свои учетные данные</span>
       </h2>
     </header>
 
     <!-- Username Field -->
     <div class="form-field">
       <tui-textfield class="input-field">
-        <label tuiLabel for="username" class="field-label">Username</label>
+        <label tuiLabel for="username" class="field-label">Имя пользователя</label>
         <input
           id="username"
           formControlName="username"
-          placeholder="Enter your username"
+          placeholder="Введите имя пользователя"
           tuiTextfield
           autocomplete="username"
           class="field-input"
@@ -38,11 +38,11 @@
     <!-- Password Field -->
     <div class="form-field">
       <tui-textfield class="input-field">
-        <label tuiLabel for="password" class="field-label">Password</label>
+        <label tuiLabel for="password" class="field-label">Пароль</label>
         <input
           id="password"
           formControlName="password"
-          placeholder="Enter your password"
+          placeholder="Введите пароль"
           tuiTextfield
           type="password"
           autocomplete="current-password"
@@ -58,6 +58,16 @@
       </div>
     </div>
 
+    <!-- Сообщения об ошибках -->
+    @if (errorMessage()) {
+      <tui-notification
+        status="error"
+        class="server-error-message"
+      >
+        {{ errorMessage() }}
+      </tui-notification>
+    }
+
     <footer class="login-footer">
       <button
         tuiButton
@@ -65,40 +75,22 @@
         [disabled]="form.invalid || isLoading()"
         class="submit-button"
       >
-        @if (isLoading()) {
-          Logging in...
-        } @else {
-          Login
-        }
+        Войти
       </button>
 
-      <div class="login-section">
-        <p class="login-text">
-          Don't have an account?
+      <div class="register-section">
+        <p class="register-text">
+          Нет аккаунта?
           <button
             type="button"
             tuiLink
             class="register-link"
             (click)="navigateToRegister()"
           >
-            Create one
+            Зарегистрироваться
           </button>
         </p>
       </div>
     </footer>
-
-    <!-- Сообщения об ошибках -->
-    @if (errorMessage()) {
-      <div class="server-error-message">
-        {{ errorMessage() }}
-      </div>
-    }
-
-    @if (isLoading()) {
-      <div class="loading-indicator">
-        Logging in...
-      </div>
-    }
-
   </form>
 </div>

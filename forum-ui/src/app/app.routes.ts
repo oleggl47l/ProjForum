@@ -1,8 +1,11 @@
 import { Routes } from '@angular/router';
-import {LoginFormComponent} from './core/components/login-form/login-form.component';
-import {RegisterFormComponent} from './core/components/register-form/register-form.component';
+import { LoginFormComponent } from './core/components/login-form/login-form.component';
+import { RegisterFormComponent } from './core/components/register-form/register-form.component';
+import { ProfilePageComponent } from './core/components/profile-page/profile-page.component';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
 
-//TODO: для логина нужно будет добавить еще guard canActivate персональный и
+// TODO: для логина нужно будет добавить еще guard canActivate персональный и
 // для общего path тоже нужно будет добавить canActivate для предотварщения
 // некорректной работы с роутами после логина и по его истечении и использования без аутентификации
 // p.s. пример закомменченный для использования оставилd
@@ -44,7 +47,7 @@ import {RegisterFormComponent} from './core/components/register-form/register-fo
 //   });
 // };
 
-//TODO: уже сюда тоже напишу, для форм нужно будет также сделать гуард canDeactivate с вызовом формы подтверждения действия.
+// TODO: уже сюда тоже напишу, для форм нужно будет также сделать гуард canDeactivate с вызовом формы подтверждения действия.
 // работать будет примерно так: например, идет создание статьи, вы ввели какие-то значения в форму,
 // а потом случайно закрываете - гуард перехватывает и выводит диалоговое окно с просьбой подтверждения
 // что-то типо примера:
@@ -66,10 +69,21 @@ import {RegisterFormComponent} from './core/components/register-form/register-fo
 //   });
 // };
 
+const authGuard = () => {
+  const token = localStorage.getItem('accessToken');
+  const router = inject(Router);
+
+  if (!token) {
+    return router.createUrlTree(['/login']);
+  }
+  return true;
+};
+
 export const routes: Routes = [
 
-  { path: 'login', component: LoginFormComponent},
-  { path: 'register', component: RegisterFormComponent},
+  { path: 'login', component: LoginFormComponent },
+  { path: 'register', component: RegisterFormComponent },
+  { path: 'profile', component: ProfilePageComponent, canActivate: [authGuard] },
 
   {
     path: '',

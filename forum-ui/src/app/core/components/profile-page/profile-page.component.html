@@ -1,0 +1,219 @@
+<tui-loader [showLoader]="isLoading()" class="profile-loader">
+  <div class="profile-container">
+    <!-- Заголовок страницы -->
+    <div class="profile-header">
+      <div class="header-content">
+        <h1 class="profile-title">Личный кабинет</h1>
+        <p class="profile-subtitle">Управление вашим профилем и контентом</p>
+      </div>
+
+      @if (userData()) {
+        <div class="user-header-info">
+          <div class="user-avatar-wrapper">
+            <div class="user-avatar">
+              {{ userData()!.userName!.charAt(0) }}
+            </div>
+            <div class="user-status-indicator" [class.active]="userData()?.active"></div>
+          </div>
+          <div class="user-info-short">
+            <h2 class="user-name">{{ userData()!.userName }}</h2>
+            <div class="user-email">{{ userData()?.email }}</div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Сообщение об ошибке -->
+    @if (errorMessage()) {
+      <div class="error-notification">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <!-- Основной контент -->
+    <div class="profile-content">
+      <!-- Боковая панель с навигацией -->
+      <div class="sidebar">
+        <nav class="sidebar-nav">
+          <button
+            class="nav-item"
+            [class.active]="activeItemIndex() === 0"
+            (click)="onActiveItemIndexChange(0)"
+          >
+            <span class="nav-text">Профиль</span>
+          </button>
+          <button
+            class="nav-item"
+            [class.active]="activeItemIndex() === 1"
+            (click)="onActiveItemIndexChange(1)"
+          >
+            <span class="nav-text">Мои посты</span>
+          </button>
+          <div class="nav-divider"></div>
+          <button
+            class="nav-item logout-item"
+            (click)="onLogout()"
+            [disabled]="isLoading()"
+          >
+            <span class="nav-text">
+              @if (isLoading()) {
+                Выход...
+              } @else {
+                Выйти
+              }
+            </span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Основная область контента -->
+      <div class="main-content">
+        <!-- Контент вкладки профиля -->
+        @if (activeItemIndex() === 0 && userData()) {
+          <div class="profile-tab-content">
+            <div class="profile-card">
+              <div class="card-header">
+                <h2 class="card-title">Информация о профиле</h2>
+                <div class="card-subtitle">Основные данные вашей учетной записи</div>
+              </div>
+
+              <div class="info-grid">
+                <div class="info-card">
+                  <div class="info-card-header">
+                    <h3 class="info-card-title">Личные данные</h3>
+                  </div>
+                  <div class="info-card-content">
+                    <div class="info-row">
+                      <span class="info-label">Имя пользователя</span>
+                      <span class="info-value">{{ userData()?.userName }}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Email</span>
+                      <span class="info-value">{{ userData()?.email }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="info-card">
+                  <div class="info-card-header">
+                    <h3 class="info-card-title">Статус и безопасность</h3>
+                  </div>
+                  <div class="info-card-content">
+                    <div class="info-row">
+                      <span class="info-label">Статус аккаунта</span>
+                      <div class="info-value">
+                        <span class="status-badge" [class.active]="userData()?.active">
+                          {{ userData()?.active ? 'Активен' : 'Неактивен' }}
+                        </span>
+                      </div>
+                    </div>
+                    @if (userData()?.roles && userData()!.roles!.length > 0) {
+                      <div class="info-row">
+                        <span class="info-label">Роли</span>
+                        <div class="roles-container">
+                          @for (role of userData()!.roles; track role) {
+                            <span class="role-tag">{{ role }}</span>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="info-card stats-card">
+                  <div class="info-card-header">
+                    <h3 class="info-card-title">Статистика</h3>
+                  </div>
+                  <div class="info-card-content">
+                    <div class="stats-grid">
+                      <div class="stat-item">
+                        <div class="stat-value">{{ posts().length }}</div>
+                        <div class="stat-label">Всего постов</div>
+                      </div>
+                      <div class="stat-item">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Комментариев</div>
+                      </div>
+                      <div class="stat-item">
+                        <div class="stat-value">100%</div>
+                        <div class="stat-label">Активность</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Контент вкладки постов -->
+        @if (activeItemIndex() === 1) {
+          <div class="posts-tab-content">
+            <div class="posts-header">
+              <h2 class="posts-title">Мои посты</h2>
+              <div class="posts-actions">
+                <button tuiButton size="s" class="new-post-button" disabled>
+                  + Новый пост
+                </button>
+              </div>
+            </div>
+
+            @if (posts().length > 0) {
+              <div class="posts-list-container">
+                <div class="posts-list">
+                  @for (post of posts(); track post.id) {
+                    <div class="post-card">
+                      <div class="post-header">
+                        <div class="post-meta">
+                          <h3 class="post-title">{{ post.title }}</h3>
+                          <div class="post-date">{{ post.date }}</div>
+                        </div>
+                        <div class="post-actions">
+                          <button tuiButton size="xs" appearance="flat" disabled>Редактировать</button>
+                          <button tuiButton size="xs" appearance="flat" class="delete-button" disabled>Удалить</button>
+                        </div>
+                      </div>
+                      <div class="post-content">
+                        {{ post.content }}
+                      </div>
+                      <div class="post-footer">
+                        <div class="post-stats">
+                          @if (post.category) {
+                            <span class="stat">Категории: {{ post.category }}</span>
+                          }
+                          @if (post.tags && post.tags.length > 0) {
+                            <span class="stat">Теги: {{ post.tags.join(', ') }}</span>
+                          }
+                          <span class="stat">
+                    {{ post.isPublished ? '✅ Опубликован' : '📝 Черновик' }}
+                  </span>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="posts-notification">
+                <div class="notification-icon">📝</div>
+                <div class="notification-content">
+                  <h4>У вас пока нет постов</h4>
+                  <p>Создайте свой первый пост, чтобы поделиться мыслями с сообществом</p>
+                </div>
+              </div>
+
+              <div class="empty-posts">
+                <div class="empty-icon">📝</div>
+                <h3>Постов пока нет</h3>
+                <p>Создайте свой первый пост, чтобы поделиться мыслями с сообществом</p>
+                <button tuiButton size="m" class="create-first-post" disabled>
+                  Создать первый пост
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</tui-loader>
