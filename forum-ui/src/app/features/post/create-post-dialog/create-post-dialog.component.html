@@ -21,7 +21,30 @@
         Создать новый пост
       </h2>
 
-      <form (ngSubmit)="createPost()" class="post-form" #postForm="ngForm">
+      <!-- Сообщения об ошибках и успехе -->
+      @if (errorMessage) {
+        <div class="error-message" role="alert">
+          <tui-icon icon="tuiIconAlertCircle" size="s"></tui-icon>
+          {{ errorMessage }}
+        </div>
+      }
+
+      @if (successMessage) {
+        <div class="success-message" role="status">
+          <tui-icon icon="tuiIconCheckCircle" size="s"></tui-icon>
+          {{ successMessage }}
+        </div>
+      }
+
+      <!-- Лоадер при загрузке данных -->
+      @if (isLoading) {
+        <div class="loading-indicator" aria-busy="true">
+          <tui-loader size="m" aria-label="Загрузка данных..."></tui-loader>
+          <p>Загрузка данных...</p>
+        </div>
+      }
+
+      <form (ngSubmit)="createPost()" class="post-form" #postForm="ngForm" [hidden]="isLoading">
         <!-- Заголовок -->
         <div class="form-field">
           <div class="field-label">
@@ -38,7 +61,8 @@
               [tuiAutoFocus]="true"
               placeholder="Введите заголовок поста"
               aria-required="true"
-              [disabled]="isLoading"
+              [disabled]="isCreatingPost"
+              maxlength="200"
             />
           </tui-textfield>
           <div class="field-hint">Будьте лаконичны, но информативны</div>
@@ -50,28 +74,88 @@
             Категория
             <span class="required">*</span>
           </div>
-          <tui-textfield>
-            <select
-              id="category"
-              [(ngModel)]="post.categoryName"
-              name="categoryName"
-              required
-              aria-required="true"
-              [disabled]="isLoading"
-            >
-              <option value="">Выберите категорию</option>
-              @for (category of categories; track category.id) {
-                <option [value]="category.name">{{ category.name }}</option>
+
+          <div class="category-container">
+            <!-- Выбранная категория -->
+            <div class="selected-category">
+              @if (post.categoryName) {
+                <div class="selected-category-item">
+                  {{ post.categoryName }}
+                  <button
+                    type="button"
+                    class="remove-category"
+                    (click)="clearCategory()"
+                    (keydown.enter)="clearCategory()"
+                    (keydown.space)="clearCategory()"
+                    aria-label="Удалить категорию"
+                    [disabled]="isCreatingPost"
+                  >
+                    ×
+                  </button>
+                </div>
               }
-            </select>
-          </tui-textfield>
-          <div class="field-hint">Выберите наиболее подходящую категорию</div>
+
+              <!-- Поле для добавления новой категории -->
+              <div class="add-category-input">
+                <input
+                  type="text"
+                  [(ngModel)]="newCategoryInput"
+                  name="newCategory"
+                  placeholder="Введите категорию и нажмите Enter..."
+                  (keydown.enter)="addCustomCategory($event)"
+                  [disabled]="isCreatingPost || isCreatingCategory"
+                  #categoryInput
+                  maxlength="100"
+                />
+                <button
+                  type="button"
+                  (click)="addCustomCategory()"
+                  (keydown.enter)="addCustomCategory()"
+                  (keydown.space)="addCustomCategory()"
+                  [disabled]="!newCategoryInput.trim() || isCreatingPost || isCreatingCategory"
+                >
+                  @if (isCreatingCategory) {
+                    <tui-loader size="xs"></tui-loader>
+                    Добавление...
+                  } @else {
+                    Добавить
+                  }
+                </button>
+              </div>
+            </div>
+
+            <!-- Доступные категории -->
+            @if (categories.length > 0) {
+              <div class="field-description">Выберите из доступных категорий или добавьте свою:</div>
+              <div class="available-categories" role="group" aria-label="Доступные категории">
+                @for (category of categories; track category.id) {
+                  <button
+                    type="button"
+                    class="category-option"
+                    [class.selected]="post.categoryName === category.name"
+                    (click)="selectCategory(category.name || '')"
+                    (keydown.enter)="selectCategory(category.name || '')"
+                    (keydown.space)="selectCategory(category.name || '')"
+                    [attr.aria-pressed]="post.categoryName === category.name"
+                    [disabled]="isCreatingPost"
+                  >
+                    {{ category.name }}
+                    @if (post.categoryName === category.name) {
+                      <span class="category-check">✓</span>
+                    }
+                  </button>
+                }
+              </div>
+            } @else {
+              <div class="field-hint warning">Не удалось загрузить категории</div>
+            }
+          </div>
         </div>
 
         <!-- Теги -->
         <div class="form-field">
           <div class="field-label">
-            Теги
+            Теги (опционально)
           </div>
           <div class="tags-container">
             <!-- Выбранные теги -->
@@ -86,6 +170,7 @@
                     (keydown.enter)="removeTag(tag)"
                     (keydown.space)="removeTag(tag)"
                     aria-label="Удалить тег {{ tag }}"
+                    [disabled]="isCreatingPost"
                   >
                     ×
                   </button>
@@ -99,15 +184,16 @@
                   name="newTag"
                   placeholder="Введите тег и нажмите Enter..."
                   (keydown.enter)="addCustomTag($event)"
-                  [disabled]="isLoading"
+                  [disabled]="isCreatingPost"
                   #tagInput
+                  maxlength="50"
                 />
                 <button
                   type="button"
                   (click)="addCustomTag()"
                   (keydown.enter)="addCustomTag()"
                   (keydown.space)="addCustomTag()"
-                  [disabled]="!newTagInput.trim()"
+                  [disabled]="!newTagInput.trim() || isCreatingPost"
                 >
                   Добавить
                 </button>
@@ -127,6 +213,7 @@
                     (keydown.enter)="toggleTag(tag.name || '')"
                     (keydown.space)="toggleTag(tag.name || '')"
                     [attr.aria-pressed]="post.tagNames.includes(tag.name || '')"
+                    [disabled]="isCreatingPost"
                   >
                     {{ tag.name }}
                     @if (post.tagNames.includes(tag.name || '')) {
@@ -146,19 +233,20 @@
             <span class="required">*</span>
           </div>
           <tui-textfield>
-            <textarea
+            <input
+              tuiTextfield
               id="content"
               [(ngModel)]="post.content"
               name="content"
-              rows="8"
               required
-              placeholder="Опишите детали вашего поста..."
+              [tuiAutoFocus]="true"
+              placeholder="Введите описание поста"
               aria-required="true"
-              [disabled]="isLoading"
-            ></textarea>
+              [disabled]="isCreatingPost"
+              maxlength="5000"
+            />
           </tui-textfield>
-          <div class="field-description">Поддерживается Markdown-разметка</div>
-          <div class="field-hint">Можно использовать **жирный текст**, *курсив*, списки и ссылки</div>
+          <div class="field-hint">Можно использовать Markdown-разметку</div>
         </div>
 
         <!-- Кнопки -->
@@ -170,7 +258,7 @@
             (click)="closeDialog()"
             (keydown.enter)="closeDialog()"
             (keydown.space)="closeDialog()"
-            [disabled]="isLoading"
+            [disabled]="isCreatingPost"
             aria-label="Отменить создание поста"
           >
             Отмена
@@ -179,10 +267,10 @@
             tuiButton
             type="submit"
             appearance="primary"
-            [disabled]="!post.title || !post.content || !post.categoryName || isLoading"
+            [disabled]="!post.title || !post.content || !post.categoryName || isCreatingPost"
             aria-label="Создать новый пост"
           >
-            @if (isLoading) {
+            @if (isCreatingPost) {
               <tui-loader size="xs" class="button-loader"></tui-loader>
               Создание...
             } @else {

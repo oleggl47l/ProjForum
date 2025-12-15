@@ -221,7 +221,7 @@ export class HomePageComponent implements OnInit {
           id: posts[0].id,
           title: posts[0].title,
           authorId: posts[0].authorId,
-          category: posts[0].category
+          category: posts[0].category,
         });
       }
 
