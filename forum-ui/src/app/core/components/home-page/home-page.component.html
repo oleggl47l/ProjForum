@@ -1,1 +1,469 @@
-<p>home-page works!</p>
+<div class="home-container">
+  <!-- Заголовок по центру страницы -->
+  <div class="centered-header">
+    <div class="header-content">
+      <h1 class="main-title">
+        Полифорум
+      </h1>
+      <p class="header-subtitle"></p>
+      <p class="header-subtitle">Обсуждайте, делитесь, вдохновляйтесь</p>
+    </div>
+  </div>
+
+  <!-- Сообщение об ошибке -->
+  @if (errorMessage()) {
+    <div style="
+    margin: 1rem auto;
+    max-width: 1200px;
+    padding: 0 1rem;
+  ">
+      <div style="
+      background: #ff4444;
+      color: white;
+      padding: 1rem;
+      border-radius: 8px;
+      font-weight: 500;
+    ">
+        {{ errorMessage() }}
+      </div>
+    </div>
+  }
+
+  <button
+    tuiButton
+    size="s"
+    (click)="loadInitialData()"
+    [disabled]="isLoading()"
+    style="margin-left: 1rem; background: transparent; color: transparent"
+  >
+    @if (isLoading()) {
+      Обновление...
+    } @else {
+      Обновить
+    }
+  </button>
+
+  <!-- Хедер с навигацией -->
+  <div class="page-header">
+    <div class="header-nav">
+      <div class="nav-right">
+        <!-- Блок информации о пользователе -->
+        @if (currentUser()) {
+          <div class="user-info-short" style="margin-right: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.8);">
+              Привет, <strong>{{ currentUser()!.userName }}</strong>
+            </div>
+          </div>
+        }
+
+        @if (!currentUser()) {
+          <button
+            tuiButton
+            routerLink="/login"
+            class="auth-btn"
+            type="button"
+            aria-label="Войти в аккаунт"
+          >
+            Войти
+          </button>
+        }
+
+        <button
+          tuiButton
+          routerLink="/profile"
+          class="auth-btn profile-btn"
+          type="button"
+          aria-label="Перейти в профиль"
+        >
+          Профиль
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Основной контент -->
+  <div class="main-content">
+    <!-- Панель поиска и создания -->
+    <div class="actions-panel">
+      <div class="search-container">
+        <input
+          type="search"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event); applyFilters()"
+          placeholder="Поиск постов..."
+          class="search-input"
+          aria-label="Поиск постов"
+        />
+        @if (searchQuery()) {
+          <button
+            class="clear-search"
+            (click)="clearSearchQuery()"
+            (keyup.enter)="clearSearchQuery()"
+            aria-label="Очистить поиск"
+            type="button"
+            tabindex="0"
+          >
+            ×
+          </button>
+        }
+      </div>
+
+      <button
+        tuiButton
+        (click)="openCreatePostDialog()"
+        class="create-post-btn create-post-btn--highlighted"
+        aria-label="Создать новый пост"
+        type="button"
+      >
+        Создать пост
+      </button>
+    </div>
+
+    <!-- Фильтр по категориям -->
+    @if (categories().length > 0) {
+      <div class="categories-filter-section">
+        <div class="categories-header">
+          <h3 style="margin: 0;">Категории:</h3>
+        </div>
+        <div class="categories-list" role="group" aria-label="Категории">
+          <button
+            tuiBadge
+            [appearance]="selectedCategory() === null ? 'primary' : 'secondary'"
+            (click)="sortByCategory(null)"
+            (keyup.enter)="sortByCategory(null)"
+            class="category-filter-btn"
+            type="button"
+            tabindex="0"
+          >
+            Все категории
+          </button>
+          @for (category of categories(); track category.id) {
+            <button
+              tuiBadge
+              [appearance]="selectedCategory() === category.name ? 'primary' : 'secondary'"
+              (click)="sortByCategory(category.name || '')"
+              (keyup.enter)="sortByCategory(category.name || '')"
+              class="category-filter-btn"
+              type="button"
+              tabindex="0"
+            >
+              {{ category.name }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Компактный фильтр по тегам -->
+    @if (allTags().length > 0) {
+      <div class="tags-filter-section">
+        <div class="tags-header">
+          <div class="tags-title-container">
+            <h3 style="margin: 0;">Теги:</h3>
+            @if (selectedTags().length > 0) {
+              <div class="selected-tags-counter">
+                <span class="counter-number">{{ selectedTags().length }}</span>
+                <span class="counter-text">выбрано</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="tags-content">
+          <!-- Поиск слева -->
+          <div class="tags-search-container">
+            <input
+              type="search"
+              [ngModel]="tagSearchQuery()"
+              (ngModelChange)="tagSearchQuery.set($event); applyTagSearch()"
+              placeholder="Поиск тегов..."
+              class="tags-search-input"
+              aria-label="Поиск тегов"
+            />
+            @if (tagSearchQuery()) {
+              <button
+                class="clear-tag-search"
+                (click)="clearTagSearch()"
+                (keyup.enter)="clearTagSearch()"
+                aria-label="Очистить поиск тегов"
+                type="button"
+                tabindex="0"
+              >
+                ×
+              </button>
+            }
+            @if (tagSearchQuery()) {
+              <div class="search-info">
+                {{ filteredTags().length }} тег{{ filteredTags().length === 1 ? '' : 'а' }}
+              </div>
+            }
+          </div>
+
+          <!-- Облако тегов в середине -->
+          <div class="tags-cloud-wrapper">
+            <div class="tags-cloud-header">
+              <span class="tags-count">
+                {{ filteredTags().length }} тег{{ filteredTags().length === 1 ? '' : 'ов' }}
+              </span>
+            </div>
+
+            <div
+              class="tags-cloud"
+              role="group"
+              aria-labelledby="tags-title"
+              [class.expanded]="isTagsExpanded()"
+            >
+              @for (tag of filteredTags(); track tag.id) {
+                <button
+                  tuiBadge
+                  [appearance]="getTagAppearance(tag.name || '')"
+                  (click)="toggleTagFilter(tag.name || '')"
+                  (keyup.enter)="toggleTagFilter(tag.name || '')"
+                  class="tag-filter-btn"
+                  [class.selected]="isTagSelected(tag.name || '')"
+                  [attr.aria-pressed]="isTagSelected(tag.name || '')"
+                  [attr.aria-checked]="isTagSelected(tag.name || '')"
+                  type="button"
+                  role="checkbox"
+                  tabindex="0"
+                >
+                  <span class="tag-text">{{ tag.name }}</span>
+                  @if (isTagSelected(tag.name || '')) {
+                    <span class="tag-check">✓</span>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Кнопки управления справа -->
+          <div class="tags-controls">
+            <button
+              class="toggle-tags-btn"
+              (click)="toggleTagsExpanded()"
+              (keyup.enter)="toggleTagsExpanded()"
+              [attr.aria-expanded]="isTagsExpanded()"
+              aria-label="{{ isTagsExpanded() ? 'Свернуть теги' : 'Развернуть теги' }}"
+              type="button"
+              tabindex="0"
+            >
+              @if (isTagsExpanded()) {
+                <span class="toggle-icon">▲</span>
+                <span class="toggle-text">Свернуть</span>
+              } @else {
+                <span class="toggle-icon">▼</span>
+                <span class="toggle-text">Показать все</span>
+              }
+            </button>
+
+            @if (selectedTags().length > 0) {
+              <button
+                class="clear-all-tags"
+                (click)="selectedTags.set([]); applyFilters()"
+                (keyup.enter)="selectedTags.set([]); applyFilters()"
+                aria-label="Очистить все теги"
+                type="button"
+                tabindex="0"
+              >
+                Очистить
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Выбранные теги (отдельный блок) -->
+        @if (selectedTags().length > 0) {
+          <div class="selected-tags-preview">
+            <div class="preview-label">Выбранные теги:</div>
+            <div class="preview-tags">
+              @for (tag of selectedTags(); track tag) {
+                <div class="preview-tag">
+                  {{ tag }}
+                  <button
+                    class="remove-preview-tag"
+                    (click)="toggleTagFilter(tag)"
+                    (keyup.enter)="toggleTagFilter(tag)"
+                    aria-label="Удалить тег {{ tag }}"
+                    type="button"
+                    tabindex="0"
+                  >
+                    ×
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Список постов -->
+    <div class="posts-section">
+      <div class="section-header">
+        <h2 class="section-subtitle">Посты сообщества</h2>
+        <div class="posts-count" aria-live="polite" aria-atomic="true">
+          <span class="count-text">
+            Показано {{ filteredPosts.length }} из {{ posts().length }}
+          </span>
+          @if (selectedCategory()) {
+            <span class="category-filter-info">
+              <span class="filter-icon">📂</span>
+              {{ selectedCategory() }}
+            </span>
+          }
+          @if (selectedTags().length > 0) {
+            <span class="tags-filter-info">
+              <span class="filter-icon">🏷️</span>
+              {{ selectedTags().length }} тег{{ selectedTags().length > 1 ? 'а' : '' }}
+            </span>
+          }
+        </div>
+      </div>
+
+      @if (isLoading()) {
+        <div class="loading-state" aria-live="polite" aria-busy="true">
+          <tui-loader aria-label="Загрузка постов"></tui-loader>
+          <p>Загрузка постов...</p>
+        </div>
+      } @else if (posts().length === 0) {
+        <div class="empty-state" role="alert">
+          <h3>Постов не найдено</h3>
+          <p>Попробуйте изменить параметры фильтрации</p>
+          <button
+            tuiButton
+            (click)="clearFilters()"
+            (keyup.enter)="clearFilters()"
+            type="button"
+            aria-label="Сбросить все фильтры"
+            tabindex="0"
+          >
+            Сбросить фильтры
+          </button>
+        </div>
+      } @else {
+        <!-- Список постов -->
+        <div class="posts-list" role="list" aria-label="Список постов">
+          @for (post of filteredPosts; track post.id; let i = $index) {
+            <div
+              class="post-card-wrapper"
+              role="listitem"
+              [attr.aria-posinset]="i + 1"
+              [attr.aria-setsize]="filteredPosts.length"
+            >
+              <a
+                [routerLink]="['/post', post.id]"
+                class="post-link"
+                [attr.aria-label]="'Пост: ' + (post.title || '')"
+              >
+                <div class="post-card" [class.draft]="!post.isPublished">
+                  <!-- Заголовок поста -->
+                  <div class="post-header">
+                    <div class="post-meta">
+                      <div class="author-info">
+                        <tui-avatar aria-hidden="true">
+                          {{ post.authorId?.substring(0, 2) || 'AU' }}
+                        </tui-avatar>
+                        <div class="author-details">
+                          <span class="author-id">Пользователь {{ post.authorId?.substring(0, 8) }}</span>
+                          <span class="post-date">
+                            {{ formatDate(post.createdAt) }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    @if (post.category) {
+                      <div
+                        class="category-badge"
+                        aria-label="Категория: {{ post.category }}"
+                      >
+                        {{ post.category }}
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Контент поста -->
+                  <div class="post-body">
+                    <h3 class="post-title">
+                      {{ post.title }}
+                      @if (!post.isPublished) {
+                        <tui-badge
+                          class="draft-badge"
+                          aria-label="Черновик"
+                        >
+                          Черновик
+                        </tui-badge>
+                      }
+                    </h3>
+
+                    <p class="post-excerpt">
+                      {{ getPostExcerpt(post.content || '') }}
+                    </p>
+
+                    @if (post.tagNames && post.tagNames.length > 0) {
+                      <div class="post-tags" role="group" aria-label="Теги поста">
+                        @for (tag of post.tagNames; track tag) {
+                          <span
+                            class="post-tag"
+                            [class.highlighted]="isTagSelected(tag)"
+                            (click)="$event.preventDefault(); toggleTagFilter(tag)"
+                            (keyup.enter)="toggleTagFilter(tag)"
+                            tabindex="0"
+                            role="button"
+                          >
+                            {{ tag }}
+                            @if (isTagSelected(tag)) {
+                              <span class="post-tag-check">✓</span>
+                            }
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Футер поста -->
+                  <div class="post-footer">
+                    <div class="post-stats">
+                      <span
+                        class="stat"
+                        tabindex="0"
+                      >
+                        0 просмотров
+                      </span>
+                      <span
+                        class="stat"
+                        tabindex="0"
+                      >
+                        <span class="stat-icon">💬</span>
+                        0 комментариев
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </div>
+          }
+        </div>
+
+        <!-- Пагинация -->
+        @if (totalPages > 1) {
+          <div class="pagination-wrapper" aria-label="Навигация по страницам">
+            <tui-pagination
+              [length]="totalPages"
+              [(index)]="currentPageValue"
+              class="pagination"
+              aria-label="Пагинация"
+            ></tui-pagination>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Диалог создания поста -->
+  <app-create-post-dialog
+    [open]="isCreatePostDialogOpen()"
+    (closed)="closeCreatePostDialog()"
+    (postCreated)="onPostCreated($event)"
+  ></app-create-post-dialog>
+</div>

@@ -2,8 +2,10 @@ import { Routes } from '@angular/router';
 import { LoginFormComponent } from './core/components/login-form/login-form.component';
 import { RegisterFormComponent } from './core/components/register-form/register-form.component';
 import { ProfilePageComponent } from './core/components/profile-page/profile-page.component';
+import {HomePageComponent} from './core/components/home-page/home-page.component';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
+
 
 // TODO: для логина нужно будет добавить еще guard canActivate персональный и
 // для общего path тоже нужно будет добавить canActivate для предотварщения
@@ -81,6 +83,7 @@ const authGuard = () => {
 
 export const routes: Routes = [
 
+  { path: 'home', component: HomePageComponent },
   { path: 'login', component: LoginFormComponent },
   { path: 'register', component: RegisterFormComponent },
   { path: 'profile', component: ProfilePageComponent, canActivate: [authGuard] },
@@ -88,7 +91,7 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./features/home/home.component').then(m => m.HomeComponent)
+      import('./core/components/home-page/home-page.component').then(m => m.HomePageComponent)
   },
 
   {
@@ -110,7 +113,7 @@ export const routes: Routes = [
       {
         path: 'home',
         loadComponent: () =>
-          import('./features/home/home.component').then(m => m.HomeComponent),
+          import('./core/components/home-page/home-page.component').then(m => m.HomePageComponent),
       },
     ],
   },

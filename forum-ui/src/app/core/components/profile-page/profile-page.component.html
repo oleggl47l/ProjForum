@@ -2,11 +2,20 @@
   <div class="profile-container">
     <!-- Заголовок страницы -->
     <div class="profile-header">
+      <!-- Левая часть с кнопкой "На главную" -->
+      <div class="header-left">
+        <button class="home-button" (click)="goHome()" [disabled]="isLoading()">
+          Все посты
+        </button>
+      </div>
+
+      <!-- Центральная часть с заголовком -->
       <div class="header-content">
         <h1 class="profile-title">Личный кабинет</h1>
         <p class="profile-subtitle">Управление вашим профилем и контентом</p>
       </div>
 
+      <!-- Правая часть с данными пользователя -->
       @if (userData()) {
         <div class="user-header-info">
           <div class="user-avatar-wrapper">
@@ -152,9 +161,9 @@
             <div class="posts-header">
               <h2 class="posts-title">Мои посты</h2>
               <div class="posts-actions">
-                <button tuiButton size="s" class="new-post-button" disabled>
-                  + Новый пост
-                </button>
+<!--                <button tuiButton size="s" class="new-post-button" disabled>-->
+<!--                  + Новый пост-->
+<!--                </button>-->
               </div>
             </div>
 
@@ -169,8 +178,8 @@
                           <div class="post-date">{{ post.date }}</div>
                         </div>
                         <div class="post-actions">
-                          <button tuiButton size="xs" appearance="flat" disabled>Редактировать</button>
-                          <button tuiButton size="xs" appearance="flat" class="delete-button" disabled>Удалить</button>
+<!--                          <button tuiButton size="xs" appearance="flat"  disabled>Редактировать</button>-->
+<!--                          <button tuiButton size="xs" appearance="flat" class="delete-button" disabled>Удалить</button>-->
                         </div>
                       </div>
                       <div class="post-content">

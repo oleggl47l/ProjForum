@@ -20,10 +20,48 @@
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+  position: relative;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-right: 2rem;
+}
+
+.home-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: 1px solid var(--tui-base-03);
+  color: white;
+  border-radius: 8px;
+  padding: 0.625rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--tui-primary);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:before {
+    font-size: 1rem;
+  }
 }
 
 .header-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .profile-title {
@@ -613,6 +651,12 @@
     gap: 1rem;
   }
 
+  .header-left {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+
   .user-header-info {
     margin-left: 0;
     width: 100%;
@@ -696,6 +740,11 @@
 @media (max-width: 480px) {
   .profile-header {
     padding: 1rem;
+  }
+
+  .home-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
   }
 
   .stats-grid {
