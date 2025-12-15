@@ -1,348 +1,497 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { catchError, lastValueFrom } from 'rxjs';
 
 // Taiga UI Core для standalone
-import {
-  TuiButton,
-  TuiLoader,
-} from '@taiga-ui/core';
-
+import { TuiButton, TuiLoader } from '@taiga-ui/core';
 // Taiga UI Kit для standalone
-import {
-  TuiAvatar,
-  TuiBadge,
-  TuiPagination
-} from '@taiga-ui/kit';
+import { TuiAvatar, TuiBadge, TuiPagination } from '@taiga-ui/kit';
 
-// Импортируем компонент диалога и его интерфейс
+// Импортируем сгенерированные API модели
+import { ApiConfiguration } from '../../../api/api-configuration';
+import { PostModel } from '../../../api/models/post-model';
+import { CategoryModel } from '../../../api/models/category-model';
+import { TagModel } from '../../../api/models/tag-model';
+import { CurrentUserDto } from '../../../api/models/current-user-dto';
+import { OperationResultDto } from '../../../api/models/operation-result-dto';
+
+// Импортируем компонент диалога
 import { CreatePostDialogComponent, NewPostData } from '../../../features/post/create-post-dialog/create-post-dialog.component';
 
-// Временные интерфейсы
-interface PostModel {
-  id: string;
-  title?: string;
-  content?: string;
-  authorId?: string;
-  category?: string;
-  createdAt: string;
-  updatedAt?: string;
-  isPublished: boolean;
-  tagNames?: string[];
-}
-
-interface CategoryModel {
-  id: string;
-  name?: string;
-  description?: string;
-}
-
-interface TagModel {
-  id: string;
-  name?: string;
+// Интерфейс для ответа текущего пользователя (как в profile-page)
+interface CurrentUserResponse {
+  result: OperationResultDto;
+  currentUser: CurrentUserDto;
 }
 
 @Component({
   selector: 'app-home-page',
+  standalone: true,
   imports: [
     FormsModule,
     RouterLink,
-
-    // Taiga UI Core - компоненты
     TuiButton,
     TuiLoader,
-
-    // Taiga UI Kit - компоненты
     TuiAvatar,
     TuiBadge,
     TuiPagination,
-
-    // Диалог создания поста
     CreatePostDialogComponent
   ],
   templateUrl: './home-page.component.html',
-  styleUrls: ['./home-page.component.less']
+  styleUrls: ['./home-page.component.less'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePageComponent implements OnInit {
-  // Данные (временные моки)
-  posts: PostModel[] = [];
-  allPosts: PostModel[] = [];
-  categories: CategoryModel[] = [];
-  allTags: TagModel[] = []; // Все теги
-  filteredTags: TagModel[] = []; // Отфильтрованные теги для отображения
+  private readonly http = inject(HttpClient);
+  private readonly apiConfig = inject(ApiConfiguration);
 
-  // Состояние
-  isLoading = false;
-  searchQuery = '';
-  tagSearchQuery = ''; // Поиск по тегам
-  selectedTags: string[] = [];
-  sortBy: 'newest' | 'oldest' = 'newest';
-  currentPage = 0;
-  itemsPerPage = 10;
+  // Сигналы для состояния
+  protected readonly isLoading = signal(false);
+  protected readonly errorMessage = signal<string | null>(null);
+  protected readonly currentUser = signal<CurrentUserDto | null>(null);
 
-  // Фильтры
-  showFilters = false;
-  showDrafts = false;
-  selectedCategory: string | null = null;
+  // Сигналы для данных
+  protected readonly posts = signal<PostModel[]>([]);
+  protected readonly allPosts = signal<PostModel[]>([]);
+  protected readonly categories = signal<CategoryModel[]>([]);
+  protected readonly allTags = signal<TagModel[]>([]);
+  protected readonly filteredTags = signal<TagModel[]>([]);
+
+  // Сигналы для фильтров
+  protected readonly searchQuery = signal('');
+  protected readonly tagSearchQuery = signal('');
+  protected readonly selectedTags = signal<string[]>([]);
+  protected readonly selectedCategory = signal<string | null>(null);
+  protected readonly showDrafts = signal(false);
+  protected readonly sortBy = signal<'newest' | 'oldest'>('newest');
+  protected readonly currentPage = signal(0);
+  protected readonly itemsPerPage = 10;
+  protected readonly isTagsExpanded = signal(false);
 
   // Диалог создания поста
-  isCreatePostDialogOpen = false;
+  protected readonly isCreatePostDialogOpen = signal(false);
 
-  // Состояние развернутости тегов
-  isTagsExpanded = false;
+  // Метод для получения заголовков с токеном
+  private getAuthHeaders(): HttpHeaders | null {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      return null;
+    }
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+  }
 
   ngOnInit(): void {
-    this.loadInitialData();
+    console.log('HomePageComponent initialized');
+    console.log('Token exists:', !!localStorage.getItem('accessToken'));
+    console.log('Token value:', localStorage.getItem('accessToken')?.substring(0, 20) + '...');
+
+    this.loadInitialData().catch(error => {
+      console.error('Failed to load initial data:', error);
+      this.errorMessage.set('Не удалось загрузить данные');
+      this.isLoading.set(false);
+    });
   }
 
-  loadInitialData(): void {
-    this.isLoading = true;
+  protected async loadInitialData(): Promise<void> {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
 
-    // Временные моки данных
-    setTimeout(() => {
-      this.allPosts = [
-        {
-          id: '1',
-          title: 'Пример первого поста',
-          content: 'Это содержание первого поста на нашем форуме. Здесь обсуждаются интересные темы...',
-          authorId: 'user-123',
-          category: 'Обсуждение',
-          createdAt: new Date().toISOString(),
-          isPublished: true,
-          tagNames: ['angular', 'frontend']
-        },
-        {
-          id: '2',
-          title: 'Вопрос по TypeScript',
-          content: 'У меня возник вопрос по TypeScript generics. Как правильно типизировать...',
-          authorId: 'user-456',
-          category: 'Вопрос',
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-          isPublished: true,
-          tagNames: ['typescript', 'programming']
-        },
-        {
-          id: '3',
-          title: 'Новости проекта',
-          content: 'Мы выпустили новую версию нашего приложения с множеством улучшений...',
-          authorId: 'user-789',
-          category: 'Новости',
-          createdAt: new Date(Date.now() - 172800000).toISOString(),
-          isPublished: true,
-          tagNames: ['announcement', 'update']
-        }
-      ];
+    try {
+      // 1. Загружаем текущего пользователя
+      await this.loadCurrentUser();
 
-      this.categories = [
-        { id: '1', name: 'Обсуждение', description: 'Общие обсуждения' },
-        { id: '2', name: 'Вопрос', description: 'Вопросы и ответы' },
-        { id: '3', name: 'Новости', description: 'Новости проекта' },
-        { id: '4', name: 'Руководство', description: 'Инструкции и руководства' },
-        { id: '5', name: 'Объявление', description: 'Официальные объявления' }
-      ];
+      // 2. Загружаем все данные параллельно
+      await Promise.all([
+        this.loadPosts(),
+        this.loadCategories(),
+        this.loadTags()
+      ]);
 
-      // Начальный список тегов
-      this.allTags = [
-        { id: '1', name: 'angular' },
-        { id: '2', name: 'typescript' },
-        { id: '3', name: 'frontend' },
-        { id: '4', name: 'programming' },
-        { id: '5', name: 'announcement' },
-        { id: '6', name: 'update' },
-        { id: '7', name: 'javascript' },
-        { id: '8', name: 'css' },
-        { id: '9', name: 'html' },
-        { id: '10', name: 'web' }
-      ];
-
-      this.filteredTags = [...this.allTags];
-      this.applyFilters();
-      this.isLoading = false;
-    }, 500);
+      console.log('Initial data loaded successfully');
+    } catch (error: unknown) {
+      console.error('Error loading initial data:', error);
+      if (error instanceof Error) {
+        this.errorMessage.set(error.message);
+      } else {
+        this.errorMessage.set('Ошибка при загрузке данных');
+      }
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
-  applyFilters(): void {
-    let filtered = [...this.allPosts];
-
-    if (this.searchQuery.trim()) {
-      const query = this.searchQuery.toLowerCase();
-      filtered = filtered.filter(post =>
-        (post.title?.toLowerCase().includes(query)) ||
-        (post.content?.toLowerCase().includes(query)) ||
-        (post.category?.toLowerCase().includes(query))
-      );
+  private async loadCurrentUser(): Promise<void> {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      console.log('No token found, user not logged in');
+      return;
     }
 
-    if (this.selectedTags.length > 0) {
-      filtered = filtered.filter(post =>
-        post.tagNames?.some(tag => this.selectedTags.includes(tag))
+    console.log('Loading current user with token length:', token.length);
+
+    try {
+      // Используем прямой запрос с заголовком, как в profile-page
+      const response = await lastValueFrom(
+        this.http.get<CurrentUserResponse>(
+          `${this.apiConfig.rootUrl}/api/identity/v1/Auth/getCurrentUser`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        ).pipe(
+          catchError((error: HttpErrorResponse) => {
+            console.error('Error getting current user:', error);
+            console.error('Error status:', error.status);
+            console.error('Error message:', error.message);
+            console.error('Error headers:', error.headers);
+
+            if (error.status === 401) {
+              console.log('User not authenticated - token might be invalid or expired');
+              // Если токен невалидный, очищаем его
+              localStorage.removeItem('accessToken');
+              localStorage.removeItem('refreshToken');
+              this.errorMessage.set('Сессия истекла. Пожалуйста, войдите снова.');
+            } else if (error.status === 403) {
+              console.log('Forbidden - insufficient permissions');
+              this.errorMessage.set('Недостаточно прав для выполнения операции');
+            }
+            throw error;
+          })
+        )
       );
+
+      if (response?.result?.success && response.currentUser) {
+        this.currentUser.set(response.currentUser);
+        console.log('Current user loaded:', response.currentUser);
+      } else {
+        console.log('Failed to load current user - response:', response);
+      }
+    } catch (error: unknown) {
+      // Игнорируем ошибку, если пользователь не авторизован
+      console.log('User might not be logged in or token expired');
+      if (error instanceof HttpErrorResponse && error.status !== 401) {
+        console.error('Error loading current user:', error);
+        this.errorMessage.set('Ошибка загрузки данных пользователя');
+      }
+    }
+  }
+
+  private async loadPosts(): Promise<void> {
+    console.log('Loading posts...');
+    const token = localStorage.getItem('accessToken');
+
+    try {
+      let headers = {};
+      if (token) {
+        headers = { Authorization: `Bearer ${token}` };
+      }
+
+      // Используем прямой запрос с заголовком
+      const response = await lastValueFrom(
+        this.http.get<PostModel[]>(
+          `${this.apiConfig.rootUrl}/api/forum/v1/Post/GetPosts`,
+          { headers }
+        ).pipe(
+          catchError((error: HttpErrorResponse) => {
+            console.error('Error loading posts:', error);
+            console.error('Error status:', error.status);
+
+            if (error.status === 401) {
+              console.log('Posts require authentication, but token is missing or invalid');
+              // Не устанавливаем ошибку, так как посты могут требовать авторизации
+              return [];
+            } else if (error.status === 403) {
+              this.errorMessage.set('Недостаточно прав для просмотра постов');
+            } else {
+              this.errorMessage.set('Ошибка загрузки постов');
+            }
+            throw error;
+          })
+        )
+      );
+
+      const posts = response || [];
+      console.log(`Loaded ${posts.length} posts`);
+
+      if (posts.length > 0) {
+        console.log('First post sample:', {
+          id: posts[0].id,
+          title: posts[0].title,
+          authorId: posts[0].authorId,
+          category: posts[0].category
+        });
+      }
+
+      this.allPosts.set(posts);
+      this.posts.set(posts); // Изначально показываем все посты
+
+    } catch (error: unknown) {
+      console.error('Failed to load posts:', error);
+      // Устанавливаем пустой массив в случае ошибки
+      this.allPosts.set([]);
+      this.posts.set([]);
+    }
+  }
+
+  private async loadCategories(): Promise<void> {
+    console.log('Loading categories...');
+    const token = localStorage.getItem('accessToken');
+
+    try {
+      let headers = {};
+      if (token) {
+        headers = { Authorization: `Bearer ${token}` };
+      }
+
+      const response = await lastValueFrom(
+        this.http.get<CategoryModel[]>(
+          `${this.apiConfig.rootUrl}/api/forum/v1/Category/GetCategories`,
+          { headers }
+        ).pipe(
+          catchError((error: HttpErrorResponse) => {
+            console.error('Error loading categories:', error);
+            if (error.status === 401) {
+              console.log('Categories require authentication');
+              // Возвращаем пустой массив для категорий
+              return [];
+            }
+            throw error;
+          })
+        )
+      );
+
+      const categories = response || [];
+      console.log(`Loaded ${categories.length} categories`);
+      this.categories.set(categories);
+
+    } catch (error) {
+      console.error('Failed to load categories, using empty array:', error);
+      this.categories.set([]);
+    }
+  }
+
+  private async loadTags(): Promise<void> {
+    console.log('Loading tags...');
+    const token = localStorage.getItem('accessToken');
+
+    try {
+      let headers = {};
+      if (token) {
+        headers = { Authorization: `Bearer ${token}` };
+      }
+
+      const response = await lastValueFrom(
+        this.http.get<TagModel[]>(
+          `${this.apiConfig.rootUrl}/api/forum/v1/Tag/GetTags`,
+          { headers }
+        ).pipe(
+          catchError((error: HttpErrorResponse) => {
+            console.error('Error loading tags:', error);
+            if (error.status === 401) {
+              console.log('Tags require authentication');
+              // Возвращаем пустой массив для тегов
+              return [];
+            }
+            throw error;
+          })
+        )
+      );
+
+      const tags = response || [];
+      console.log(`Loaded ${tags.length} tags`);
+      this.allTags.set(tags);
+      this.filteredTags.set(tags);
+
+    } catch (error) {
+      console.error('Failed to load tags, using empty array:', error);
+      this.allTags.set([]);
+      this.filteredTags.set([]);
+    }
+  }
+
+  // Методы для фильтрации (остаются без изменений)
+  protected applyFilters(): void {
+    console.log('Applying filters...');
+    this.isLoading.set(true);
+
+    let filtered = [...this.allPosts()];
+
+    // Фильтрация по поисковому запросу
+    const searchQuery = this.searchQuery().toLowerCase().trim();
+    if (searchQuery) {
+      filtered = filtered.filter(post =>
+        (post.title?.toLowerCase().includes(searchQuery)) ||
+        (post.content?.toLowerCase().includes(searchQuery)) ||
+        (post.category?.toLowerCase().includes(searchQuery))
+      );
+      console.log(`Filtered by search query "${searchQuery}": ${filtered.length} posts`);
     }
 
-    if (this.selectedCategory) {
+    // Фильтрация по тегам
+    const selectedTags = this.selectedTags();
+    if (selectedTags.length > 0) {
       filtered = filtered.filter(post =>
-        post.category === this.selectedCategory
+        post.tagNames?.some(tag => selectedTags.includes(tag))
       );
+      console.log(`Filtered by tags ${selectedTags.join(', ')}: ${filtered.length} posts`);
     }
 
-    if (!this.showDrafts) {
+    // Фильтрация по категории
+    const selectedCategory = this.selectedCategory();
+    if (selectedCategory) {
+      filtered = filtered.filter(post => post.category === selectedCategory);
+      console.log(`Filtered by category "${selectedCategory}": ${filtered.length} posts`);
+    }
+
+    // Скрыть черновики, если не выбрано иное
+    if (!this.showDrafts()) {
       filtered = filtered.filter(post => post.isPublished);
     }
 
+    // Сортировка с проверкой на существование createdAt
     filtered.sort((a, b) => {
-      switch (this.sortBy) {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+
+      switch (this.sortBy()) {
         case 'newest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          return dateB - dateA;
         case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          return dateA - dateB;
         default:
           return 0;
       }
     });
 
-    this.posts = filtered;
-    this.currentPage = 0;
+    this.posts.set(filtered);
+    this.currentPage.set(0);
+    this.isLoading.set(false);
   }
 
-  // Поиск по тегам
-  applyTagSearch(): void {
-    if (this.tagSearchQuery.trim()) {
-      const query = this.tagSearchQuery.toLowerCase();
-      this.filteredTags = this.allTags.filter(tag =>
+  protected applyTagSearch(): void {
+    const query = this.tagSearchQuery().toLowerCase().trim();
+    if (query) {
+      const filtered = this.allTags().filter(tag =>
         tag.name?.toLowerCase().includes(query)
       );
+      this.filteredTags.set(filtered);
     } else {
-      this.filteredTags = [...this.allTags];
+      this.filteredTags.set([...this.allTags()]);
     }
   }
 
-  // Очистить поиск по тегам
-  clearTagSearch(): void {
-    this.tagSearchQuery = '';
+  protected clearTagSearch(): void {
+    this.tagSearchQuery.set('');
     this.applyTagSearch();
   }
 
-  toggleTagFilter(tagName: string): void {
-    const index = this.selectedTags.indexOf(tagName);
+  protected toggleTagFilter(tagName: string): void {
+    const tags = [...this.selectedTags()];
+    const index = tags.indexOf(tagName);
+
     if (index > -1) {
-      this.selectedTags.splice(index, 1);
+      tags.splice(index, 1);
     } else {
-      this.selectedTags.push(tagName);
+      tags.push(tagName);
     }
+
+    this.selectedTags.set(tags);
     this.applyFilters();
   }
 
-  // Проверка, является ли тег выбранным
-  isTagSelected(tagName: string): boolean {
-    return this.selectedTags.includes(tagName);
+  protected isTagSelected(tagName: string): boolean {
+    return this.selectedTags().includes(tagName);
   }
 
-  // Получить стиль для подсветки тега
-  getTagAppearance(tagName: string): string {
+  protected getTagAppearance(tagName: string): string {
     return this.isTagSelected(tagName) ? 'primary' : 'secondary';
   }
 
-  // Переключение состояния развернутости тегов
-  toggleTagsExpanded(): void {
-    this.isTagsExpanded = !this.isTagsExpanded;
+  protected toggleTagsExpanded(): void {
+    this.isTagsExpanded.set(!this.isTagsExpanded());
   }
 
-  clearFilters(): void {
-    this.searchQuery = '';
-    this.selectedTags = [];
-    this.selectedCategory = null;
-    this.showDrafts = false;
-    this.sortBy = 'newest';
+  protected clearFilters(): void {
+    console.log('Clearing all filters');
+    this.searchQuery.set('');
+    this.selectedTags.set([]);
+    this.selectedCategory.set(null);
+    this.tagSearchQuery.set('');
+    this.showDrafts.set(false);
+    this.sortBy.set('newest');
+    this.posts.set([...this.allPosts()]);
+    this.currentPage.set(0);
+  }
+
+  protected clearSearchQuery(): void {
+    this.searchQuery.set('');
     this.applyFilters();
   }
 
-  // Сортировка по категории
-  sortByCategory(category: string | null): void {
-    this.selectedCategory = category;
+  protected sortByCategory(category: string | null): void {
+    console.log('Sorting by category:', category);
+    this.selectedCategory.set(category);
     this.applyFilters();
   }
 
-  get filteredPosts(): PostModel[] {
-    const start = this.currentPage * this.itemsPerPage;
+  protected get filteredPosts(): PostModel[] {
+    const start = this.currentPage() * this.itemsPerPage;
     const end = start + this.itemsPerPage;
-    return this.posts.slice(start, end);
+    return this.posts().slice(start, end);
   }
 
-  get totalPages(): number {
-    return Math.ceil(this.posts.length / this.itemsPerPage);
+  protected get totalPages(): number {
+    return Math.ceil(this.posts().length / this.itemsPerPage);
   }
 
-  formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
+  protected formatDate(dateString: string | undefined | null): string {
+    if (!dateString) {
+      return 'Дата не указана';
+    }
+
+    try {
+      return new Date(dateString).toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Дата не указана';
+    }
   }
 
-  getPostExcerpt(content: string): string {
+  protected getPostExcerpt(content: string | null | undefined): string {
+    if (!content) return '';
     const plainText = content.replace(/<[^>]*>/g, '');
     return plainText.length > 100 ? plainText.substring(0, 100) + '...' : plainText;
   }
 
-  getCategoryColor(categoryName: string): string {
-    const colors = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#E91E63'];
-    const index = this.categories.findIndex(c => c.name === categoryName);
-    return index !== -1 ? colors[index % colors.length] : colors[0];
-  }
-
   // Методы для работы с диалогом создания поста
-  openCreatePostDialog(): void {
-    this.isCreatePostDialogOpen = true;
+  protected openCreatePostDialog(): void {
+    this.isCreatePostDialogOpen.set(true);
   }
 
-  closeCreatePostDialog(): void {
-    this.isCreatePostDialogOpen = false;
+  protected closeCreatePostDialog(): void {
+    this.isCreatePostDialogOpen.set(false);
   }
 
-  // Обновленный метод для обработки созданного поста
-  onPostCreated(newPostData: NewPostData): void {
-    console.log('Получены данные нового поста:', newPostData);
-
-    // Генерируем уникальный ID для нового поста
-    const newPostId = (this.allPosts.length + 1).toString();
-    const currentUserId = 'user-' + Math.random().toString(36).substr(2, 8);
-
-    // Создаем новый пост с данными из диалога
-    const newPost: PostModel = {
-      id: newPostId,
-      title: newPostData.title,
-      content: newPostData.content,
-      authorId: currentUserId,
-      category: newPostData.categoryName,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isPublished: true,
-      tagNames: [...newPostData.tagNames]
-    };
-
-    // Добавляем пост в начало списка
-    this.allPosts.unshift(newPost);
-
-    // Добавляем новые теги в общий список, если их там нет
-    newPostData.tagNames.forEach(tagName => {
-      const tagExists = this.allTags.some(tag => tag.name === tagName);
-      if (!tagExists) {
-        const newTagId = (this.allTags.length + 1).toString();
-        this.allTags.push({ id: newTagId, name: tagName });
-      }
-    });
-
-    // Обновляем отфильтрованные теги
-    this.applyTagSearch();
-
-    // Применяем фильтры
-    this.applyFilters();
-
-    // Закрываем диалог
+  protected onPostCreated(newPostData: NewPostData): void {
+    console.log('New post created:', newPostData);
+    // TODO: Реализовать обновление списка постов после создания нового
+    // Пока просто закрываем диалог
     this.closeCreatePostDialog();
+  }
 
-    // Показываем уведомление или выполняем другие действия
-    console.log('Пост успешно добавлен:', newPost);
+  // Геттер для currentPage для работы с пагинацией
+  protected get currentPageValue(): number {
+    return this.currentPage();
+  }
+
+  protected set currentPageValue(value: number) {
+    this.currentPage.set(value);
   }
 }

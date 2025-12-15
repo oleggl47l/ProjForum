@@ -10,19 +10,64 @@
     </div>
   </div>
 
+  <!-- Сообщение об ошибке -->
+  @if (errorMessage()) {
+    <div style="
+    margin: 1rem auto;
+    max-width: 1200px;
+    padding: 0 1rem;
+  ">
+      <div style="
+      background: #ff4444;
+      color: white;
+      padding: 1rem;
+      border-radius: 8px;
+      font-weight: 500;
+    ">
+        {{ errorMessage() }}
+      </div>
+    </div>
+  }
+
+  <button
+    tuiButton
+    size="s"
+    (click)="loadInitialData()"
+    [disabled]="isLoading()"
+    style="margin-left: 1rem;"
+  >
+    @if (isLoading()) {
+      Обновление...
+    } @else {
+      Обновить
+    }
+  </button>
+
   <!-- Хедер с навигацией -->
   <div class="page-header">
     <div class="header-nav">
       <div class="nav-right">
-        <button
-          tuiButton
-          routerLink="/login"
-          class="auth-btn"
-          type="button"
-          aria-label="Войти в аккаунт"
-        >
-          Войти
-        </button>
+        <!-- Блок информации о пользователе -->
+        @if (currentUser()) {
+          <div class="user-info-short" style="margin-right: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.8);">
+              Привет, <strong>{{ currentUser()!.userName }}</strong>
+            </div>
+          </div>
+        }
+
+        @if (!currentUser()) {
+          <button
+            tuiButton
+            routerLink="/login"
+            class="auth-btn"
+            type="button"
+            aria-label="Войти в аккаунт"
+          >
+            Войти
+          </button>
+        }
+
         <button
           tuiButton
           routerLink="/profile"
@@ -43,17 +88,17 @@
       <div class="search-container">
         <input
           type="search"
-          [(ngModel)]="searchQuery"
-          (ngModelChange)="applyFilters()"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event); applyFilters()"
           placeholder="Поиск постов..."
           class="search-input"
           aria-label="Поиск постов"
         />
-        @if (searchQuery) {
+        @if (searchQuery()) {
           <button
             class="clear-search"
-            (click)="searchQuery = ''; applyFilters()"
-            (keyup.enter)="searchQuery = ''; applyFilters()"
+            (click)="clearSearchQuery()"
+            (keyup.enter)="clearSearchQuery()"
             aria-label="Очистить поиск"
             type="button"
             tabindex="0"
@@ -75,7 +120,7 @@
     </div>
 
     <!-- Фильтр по категориям -->
-    @if (categories.length > 0) {
+    @if (categories().length > 0) {
       <div class="categories-filter-section">
         <div class="categories-header">
           <h3 style="margin: 0;">Категории:</h3>
@@ -83,7 +128,7 @@
         <div class="categories-list" role="group" aria-label="Категории">
           <button
             tuiBadge
-            [appearance]="selectedCategory === null ? 'primary' : 'secondary'"
+            [appearance]="selectedCategory() === null ? 'primary' : 'secondary'"
             (click)="sortByCategory(null)"
             (keyup.enter)="sortByCategory(null)"
             class="category-filter-btn"
@@ -92,10 +137,10 @@
           >
             Все категории
           </button>
-          @for (category of categories; track category.id) {
+          @for (category of categories(); track category.id) {
             <button
               tuiBadge
-              [appearance]="selectedCategory === category.name ? 'primary' : 'secondary'"
+              [appearance]="selectedCategory() === category.name ? 'primary' : 'secondary'"
               (click)="sortByCategory(category.name || '')"
               (keyup.enter)="sortByCategory(category.name || '')"
               class="category-filter-btn"
@@ -110,14 +155,14 @@
     }
 
     <!-- Компактный фильтр по тегам -->
-    @if (allTags.length > 0) {
+    @if (allTags().length > 0) {
       <div class="tags-filter-section">
         <div class="tags-header">
           <div class="tags-title-container">
             <h3 style="margin: 0;">Теги:</h3>
-            @if (selectedTags.length > 0) {
+            @if (selectedTags().length > 0) {
               <div class="selected-tags-counter">
-                <span class="counter-number">{{ selectedTags.length }}</span>
+                <span class="counter-number">{{ selectedTags().length }}</span>
                 <span class="counter-text">выбрано</span>
               </div>
             }
@@ -129,13 +174,13 @@
           <div class="tags-search-container">
             <input
               type="search"
-              [(ngModel)]="tagSearchQuery"
-              (ngModelChange)="applyTagSearch()"
+              [ngModel]="tagSearchQuery()"
+              (ngModelChange)="tagSearchQuery.set($event); applyTagSearch()"
               placeholder="Поиск тегов..."
               class="tags-search-input"
               aria-label="Поиск тегов"
             />
-            @if (tagSearchQuery) {
+            @if (tagSearchQuery()) {
               <button
                 class="clear-tag-search"
                 (click)="clearTagSearch()"
@@ -147,9 +192,9 @@
                 ×
               </button>
             }
-            @if (tagSearchQuery) {
+            @if (tagSearchQuery()) {
               <div class="search-info">
-                {{ filteredTags.length }} тег{{ filteredTags.length === 1 ? '' : 'а' }}
+                {{ filteredTags().length }} тег{{ filteredTags().length === 1 ? '' : 'а' }}
               </div>
             }
           </div>
@@ -157,18 +202,18 @@
           <!-- Облако тегов в середине -->
           <div class="tags-cloud-wrapper">
             <div class="tags-cloud-header">
-          <span class="tags-count">
-            {{ filteredTags.length }} тег{{ filteredTags.length === 1 ? '' : 'ов' }}
-          </span>
+              <span class="tags-count">
+                {{ filteredTags().length }} тег{{ filteredTags().length === 1 ? '' : 'ов' }}
+              </span>
             </div>
 
             <div
               class="tags-cloud"
               role="group"
               aria-labelledby="tags-title"
-              [class.expanded]="isTagsExpanded"
+              [class.expanded]="isTagsExpanded()"
             >
-              @for (tag of filteredTags; track tag.id) {
+              @for (tag of filteredTags(); track tag.id) {
                 <button
                   tuiBadge
                   [appearance]="getTagAppearance(tag.name || '')"
@@ -197,12 +242,12 @@
               class="toggle-tags-btn"
               (click)="toggleTagsExpanded()"
               (keyup.enter)="toggleTagsExpanded()"
-              [attr.aria-expanded]="isTagsExpanded"
-              aria-label="{{ isTagsExpanded ? 'Свернуть теги' : 'Развернуть теги' }}"
+              [attr.aria-expanded]="isTagsExpanded()"
+              aria-label="{{ isTagsExpanded() ? 'Свернуть теги' : 'Развернуть теги' }}"
               type="button"
               tabindex="0"
             >
-              @if (isTagsExpanded) {
+              @if (isTagsExpanded()) {
                 <span class="toggle-icon">▲</span>
                 <span class="toggle-text">Свернуть</span>
               } @else {
@@ -211,11 +256,11 @@
               }
             </button>
 
-            @if (selectedTags.length > 0) {
+            @if (selectedTags().length > 0) {
               <button
                 class="clear-all-tags"
-                (click)="selectedTags = []; applyFilters()"
-                (keyup.enter)="selectedTags = []; applyFilters()"
+                (click)="selectedTags.set([]); applyFilters()"
+                (keyup.enter)="selectedTags.set([]); applyFilters()"
                 aria-label="Очистить все теги"
                 type="button"
                 tabindex="0"
@@ -227,11 +272,11 @@
         </div>
 
         <!-- Выбранные теги (отдельный блок) -->
-        @if (selectedTags.length > 0) {
+        @if (selectedTags().length > 0) {
           <div class="selected-tags-preview">
             <div class="preview-label">Выбранные теги:</div>
             <div class="preview-tags">
-              @for (tag of selectedTags; track tag) {
+              @for (tag of selectedTags(); track tag) {
                 <div class="preview-tag">
                   {{ tag }}
                   <button
@@ -258,29 +303,29 @@
         <h2 class="section-subtitle">Посты сообщества</h2>
         <div class="posts-count" aria-live="polite" aria-atomic="true">
           <span class="count-text">
-            Показано {{ filteredPosts.length }} из {{ posts.length }}
+            Показано {{ filteredPosts.length }} из {{ posts().length }}
           </span>
-          @if (selectedCategory) {
+          @if (selectedCategory()) {
             <span class="category-filter-info">
               <span class="filter-icon">📂</span>
-              {{ selectedCategory }}
+              {{ selectedCategory() }}
             </span>
           }
-          @if (selectedTags.length > 0) {
+          @if (selectedTags().length > 0) {
             <span class="tags-filter-info">
               <span class="filter-icon">🏷️</span>
-              {{ selectedTags.length }} тег{{ selectedTags.length > 1 ? 'а' : '' }}
+              {{ selectedTags().length }} тег{{ selectedTags().length > 1 ? 'а' : '' }}
             </span>
           }
         </div>
       </div>
 
-      @if (isLoading) {
+      @if (isLoading()) {
         <div class="loading-state" aria-live="polite" aria-busy="true">
           <tui-loader aria-label="Загрузка постов"></tui-loader>
           <p>Загрузка постов...</p>
         </div>
-      } @else if (posts.length === 0) {
+      } @else if (posts().length === 0) {
         <div class="empty-state" role="alert">
           <h3>Постов не найдено</h3>
           <p>Попробуйте изменить параметры фильтрации</p>
@@ -321,8 +366,8 @@
                         <div class="author-details">
                           <span class="author-id">Пользователь {{ post.authorId?.substring(0, 8) }}</span>
                           <span class="post-date">
-                    {{ formatDate(post.createdAt) }}
-                  </span>
+                            {{ formatDate(post.createdAt) }}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -366,11 +411,11 @@
                             tabindex="0"
                             role="button"
                           >
-                    {{ tag }}
+                            {{ tag }}
                             @if (isTagSelected(tag)) {
                               <span class="post-tag-check">✓</span>
                             }
-                  </span>
+                          </span>
                         }
                       </div>
                     }
@@ -379,20 +424,20 @@
                   <!-- Футер поста -->
                   <div class="post-footer">
                     <div class="post-stats">
-              <span
-                class="stat"
-                tabindex="0"
-              >
-                <span class="stat-icon">👁️</span>
-                0 просмотров
-              </span>
                       <span
                         class="stat"
                         tabindex="0"
                       >
-                <span class="stat-icon">💬</span>
-                0 комментариев
-              </span>
+                        <span class="stat-icon">👁️</span>
+                        0 просмотров
+                      </span>
+                      <span
+                        class="stat"
+                        tabindex="0"
+                      >
+                        <span class="stat-icon">💬</span>
+                        0 комментариев
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -406,7 +451,7 @@
           <div class="pagination-wrapper" aria-label="Навигация по страницам">
             <tui-pagination
               [length]="totalPages"
-              [(index)]="currentPage"
+              [(index)]="currentPageValue"
               class="pagination"
               aria-label="Пагинация"
             ></tui-pagination>
@@ -418,7 +463,7 @@
 
   <!-- Диалог создания поста -->
   <app-create-post-dialog
-    [open]="isCreatePostDialogOpen"
+    [open]="isCreatePostDialogOpen()"
     (closed)="closeCreatePostDialog()"
     (postCreated)="onPostCreated($event)"
   ></app-create-post-dialog>
