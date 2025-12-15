@@ -11,7 +11,7 @@ function writeJsonFile(filepath, data) {
 }
 
 const config = {
-  apis: ['identity.swagger.json'],
+  apis: ['identity.swagger.json', 'forum.swagger.json'],
 };
 
 const configPath = path.join(__dirname, 'swagger-combine-config.json');
