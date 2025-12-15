@@ -8,7 +8,7 @@ public static class MiddlewarePipelineExtensions
     {
         app.UseCors();
 
-        if (app.Environment.IsDevelopment())
+        if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docker")
         {
             app.UseSwagger();
             app.UseSwaggerForOcelotUI();

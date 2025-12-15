@@ -1,63 +1,63 @@
 {
-  "GlobalConfiguration":{
-    "BaseUrl":"http://localhost:5000"
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5000"
   },
-  "Routes":[
+  "Routes": [
     {
-      "SwaggerKey":"identity-service",
-      "UpstreamPathTemplate":"/api/identity/{everything}",
-      "UpstreamHttpMethod":[
+      "SwaggerKey": "identity-service",
+      "UpstreamPathTemplate": "/api/identity/{everything}",
+      "UpstreamHttpMethod": [
         "Get",
         "Post",
         "Put",
         "Delete"
       ],
-      "DownstreamPathTemplate":"/api/{everything}",
-      "DownstreamScheme":"http",
-      "DownstreamHostAndPorts":[
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
         {
-          "Host":"localhost",
-          "Port":5001
+          "Host": "localhost",
+          "Port": 5001
         }
       ]
     },
     {
-      "SwaggerKey":"forum-service",
-      "UpstreamPathTemplate":"/api/forum/{everything}",
-      "UpstreamHttpMethod":[
+      "SwaggerKey": "forum-service",
+      "UpstreamPathTemplate": "/api/forum/{everything}",
+      "UpstreamHttpMethod": [
         "Get",
         "Post",
         "Put",
         "Delete"
       ],
-      "DownstreamPathTemplate":"/api/{everything}",
-      "DownstreamScheme":"http",
-      "DownstreamHostAndPorts":[
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
         {
-          "Host":"localhost",
-          "Port":5002
+          "Host": "localhost",
+          "Port": 5002
         }
       ]
     }
   ],
-  "SwaggerEndPoints":[
+  "SwaggerEndPoints": [
     {
-      "Key":"identity-service",
-      "Config":[
+      "Key": "identity-service",
+      "Config": [
         {
-          "Name":"IdentityService API",
-          "Version":"v1",
-          "Url":"http://localhost:5001/swagger/v1/swagger.json"
+          "Name": "IdentityService API",
+          "Version": "v1",
+          "Url": "http://localhost:5001/swagger/v1/swagger.json"
         }
       ]
     },
     {
-      "Key":"forum-service",
-      "Config":[
+      "Key": "forum-service",
+      "Config": [
         {
-          "Name":"ForumService API",
-          "Version":"v1",
-          "Url":"http://localhost:5002/swagger/v1/swagger.json"
+          "Name": "ForumService API",
+          "Version": "v1",
+          "Url": "http://localhost:5002/swagger/v1/swagger.json"
         }
       ]
     }
