@@ -96,7 +96,6 @@
 
                 <div class="info-card">
                   <div class="info-card-header">
-                    <span class="info-card-icon">🔒</span>
                     <h3 class="info-card-title">Статус и безопасность</h3>
                   </div>
                   <div class="info-card-content">
@@ -159,57 +158,59 @@
               </div>
             </div>
 
-            <div class="posts-notification">
-              <div class="notification-icon">💡</div>
-              <div class="notification-content">
-                <h4>Функция постов в разработке</h4>
-                <p>Скоро здесь вы сможете создавать, редактировать и управлять своими постами. Мы работаем над интеграцией с API.</p>
-              </div>
-            </div>
-
-            <div class="posts-list-container">
-              <div class="posts-list">
-                @for (post of posts(); track post.id) {
-                  <div class="post-card">
-                    <div class="post-header">
-                      <div class="post-meta">
-                        <h3 class="post-title">{{ post.title }}</h3>
-                        <div class="post-date">{{ post.date }}</div>
+            @if (posts().length > 0) {
+              <div class="posts-list-container">
+                <div class="posts-list">
+                  @for (post of posts(); track post.id) {
+                    <div class="post-card">
+                      <div class="post-header">
+                        <div class="post-meta">
+                          <h3 class="post-title">{{ post.title }}</h3>
+                          <div class="post-date">{{ post.date }}</div>
+                        </div>
+                        <div class="post-actions">
+                          <button tuiButton size="xs" appearance="flat" disabled>Редактировать</button>
+                          <button tuiButton size="xs" appearance="flat" class="delete-button" disabled>Удалить</button>
+                        </div>
                       </div>
-                      <div class="post-actions">
-                        <button tuiButton size="xs" appearance="flat" disabled>Редактировать</button>
-                        <button tuiButton size="xs" appearance="flat" class="delete-button" disabled>Удалить</button>
+                      <div class="post-content">
+                        {{ post.content }}
                       </div>
-                    </div>
-                    <div class="post-content">
-                      {{ post.content }}
-                    </div>
-                    <div class="post-footer">
-                      <div class="post-stats">
-                        <span class="stat">👁️‍🗨️️ 0 просмотров</span>
-                        <span class="stat">💬 0 комментариев</span>
-                        <span class="stat">❤️ 0 лайков</span>
-                      </div>
-                      <div class="post-status">
-                        <span class="status-draft">Черновик</span>
+                      <div class="post-footer">
+                        <div class="post-stats">
+                          @if (post.category) {
+                            <span class="stat">Категории: {{ post.category }}</span>
+                          }
+                          @if (post.tags && post.tags.length > 0) {
+                            <span class="stat">Теги: {{ post.tags.join(', ') }}</span>
+                          }
+                          <span class="stat">
+                    {{ post.isPublished ? '✅ Опубликован' : '📝 Черновик' }}
+                  </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                }
-              </div>
-
-              <!-- Подсказка при пустом списке -->
-              @if (posts().length === 0) {
-                <div class="empty-posts">
-                  <div class="empty-icon">📝</div>
-                  <h3>Постов пока нет</h3>
-                  <p>Создайте свой первый пост, чтобы поделиться мыслями с сообществом</p>
-                  <button tuiButton size="m" class="create-first-post" disabled>
-                    Создать первый пост
-                  </button>
+                  }
                 </div>
-              }
-            </div>
+              </div>
+            } @else {
+              <div class="posts-notification">
+                <div class="notification-icon">📝</div>
+                <div class="notification-content">
+                  <h4>У вас пока нет постов</h4>
+                  <p>Создайте свой первый пост, чтобы поделиться мыслями с сообществом</p>
+                </div>
+              </div>
+
+              <div class="empty-posts">
+                <div class="empty-icon">📝</div>
+                <h3>Постов пока нет</h3>
+                <p>Создайте свой первый пост, чтобы поделиться мыслями с сообществом</p>
+                <button tuiButton size="m" class="create-first-post" disabled>
+                  Создать первый пост
+                </button>
+              </div>
+            }
           </div>
         }
       </div>
