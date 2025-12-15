@@ -30,4 +30,4 @@ export function deleteCategory$Plain(http: HttpClient, rootUrl: string, params?:
   );
 }
 
-deleteCategory$Plain.PATH = '/api/v1/Category/DeleteCategory';
+deleteCategory$Plain.PATH = '/api/forum/v1/Category/DeleteCategory';

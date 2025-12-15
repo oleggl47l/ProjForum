@@ -27,4 +27,4 @@ export function getAllPosts$Plain(http: HttpClient, rootUrl: string, params?: Ge
   );
 }
 
-getAllPosts$Plain.PATH = '/api/v1/Post/GetPosts';
+getAllPosts$Plain.PATH = '/api/forum/v1/Post/GetPosts';

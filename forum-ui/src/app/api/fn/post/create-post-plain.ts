@@ -30,4 +30,4 @@ export function createPost$Plain(http: HttpClient, rootUrl: string, params?: Cre
   );
 }
 
-createPost$Plain.PATH = '/api/v1/Post/CreatePost';
+createPost$Plain.PATH = '/api/forum/v1/Post/CreatePost';

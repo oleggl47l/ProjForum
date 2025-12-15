@@ -27,4 +27,4 @@ export function getAllTags$Json(http: HttpClient, rootUrl: string, params?: GetA
   );
 }
 
-getAllTags$Json.PATH = '/api/v1/Tag/GetTags';
+getAllTags$Json.PATH = '/api/forum/v1/Tag/GetTags';

@@ -30,4 +30,4 @@ export function deleteCategory$Json(http: HttpClient, rootUrl: string, params?: 
   );
 }
 
-deleteCategory$Json.PATH = '/api/v1/Category/DeleteCategory';
+deleteCategory$Json.PATH = '/api/forum/v1/Category/DeleteCategory';

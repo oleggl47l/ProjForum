@@ -30,4 +30,4 @@ export function addTagToPost$Json(http: HttpClient, rootUrl: string, params?: Ad
   );
 }
 
-addTagToPost$Json.PATH = '/api/v1/Post/AddTagToPost';
+addTagToPost$Json.PATH = '/api/forum/v1/Post/AddTagToPost';

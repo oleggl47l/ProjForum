@@ -29,4 +29,4 @@ export function getTagById$Json(http: HttpClient, rootUrl: string, params: GetTa
   );
 }
 
-getTagById$Json.PATH = '/api/v1/Tag/GetTag/{id}';
+getTagById$Json.PATH = '/api/forum/v1/Tag/GetTag/{id}';

@@ -30,4 +30,4 @@ export function deleteTagFromPost$Plain(http: HttpClient, rootUrl: string, param
   );
 }
 
-deleteTagFromPost$Plain.PATH = '/api/v1/Post/RemoveTagFromPost';
+deleteTagFromPost$Plain.PATH = '/api/forum/v1/Post/RemoveTagFromPost';

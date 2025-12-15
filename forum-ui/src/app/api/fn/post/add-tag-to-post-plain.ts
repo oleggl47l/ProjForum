@@ -30,4 +30,4 @@ export function addTagToPost$Plain(http: HttpClient, rootUrl: string, params?: A
   );
 }
 
-addTagToPost$Plain.PATH = '/api/v1/Post/AddTagToPost';
+addTagToPost$Plain.PATH = '/api/forum/v1/Post/AddTagToPost';

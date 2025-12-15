@@ -30,4 +30,4 @@ export function deleteTag$Json(http: HttpClient, rootUrl: string, params?: Delet
   );
 }
 
-deleteTag$Json.PATH = '/api/v1/Tag/DeleteTag';
+deleteTag$Json.PATH = '/api/forum/v1/Tag/DeleteTag';

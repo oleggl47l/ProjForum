@@ -29,4 +29,4 @@ export function getPostById$Plain(http: HttpClient, rootUrl: string, params: Get
   );
 }
 
-getPostById$Plain.PATH = '/api/v1/Post/GetPostById/{id}';
+getPostById$Plain.PATH = '/api/forum/v1/Post/GetPostById/{id}';

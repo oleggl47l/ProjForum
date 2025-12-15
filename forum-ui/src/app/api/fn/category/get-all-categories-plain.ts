@@ -27,4 +27,4 @@ export function getAllCategories$Plain(http: HttpClient, rootUrl: string, params
   );
 }
 
-getAllCategories$Plain.PATH = '/api/v1/Category/GetCategories';
+getAllCategories$Plain.PATH = '/api/forum/v1/Category/GetCategories';

@@ -29,4 +29,4 @@ export function getPostById$Json(http: HttpClient, rootUrl: string, params: GetP
   );
 }
 
-getPostById$Json.PATH = '/api/v1/Post/GetPostById/{id}';
+getPostById$Json.PATH = '/api/forum/v1/Post/GetPostById/{id}';

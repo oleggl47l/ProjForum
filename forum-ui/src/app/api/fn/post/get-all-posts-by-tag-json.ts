@@ -29,4 +29,4 @@ export function getAllPostsByTag$Json(http: HttpClient, rootUrl: string, params:
   );
 }
 
-getAllPostsByTag$Json.PATH = '/api/v1/Post/GetPostsByTag/{id}/tag';
+getAllPostsByTag$Json.PATH = '/api/forum/v1/Post/GetPostsByTag/{id}/tag';

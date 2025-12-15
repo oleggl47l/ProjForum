@@ -30,4 +30,4 @@ export function createCategory$Plain(http: HttpClient, rootUrl: string, params?:
   );
 }
 
-createCategory$Plain.PATH = '/api/v1/Category/CreateCategory';
+createCategory$Plain.PATH = '/api/forum/v1/Category/CreateCategory';

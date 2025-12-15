@@ -30,4 +30,4 @@ export function deletePost$Json(http: HttpClient, rootUrl: string, params?: Dele
   );
 }
 
-deletePost$Json.PATH = '/api/v1/Post/DeletePost';
+deletePost$Json.PATH = '/api/forum/v1/Post/DeletePost';

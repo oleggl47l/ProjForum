@@ -30,4 +30,4 @@ export function createCategory$Json(http: HttpClient, rootUrl: string, params?: 
   );
 }
 
-createCategory$Json.PATH = '/api/v1/Category/CreateCategory';
+createCategory$Json.PATH = '/api/forum/v1/Category/CreateCategory';

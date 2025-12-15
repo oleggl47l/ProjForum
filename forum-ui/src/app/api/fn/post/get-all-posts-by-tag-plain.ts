@@ -29,4 +29,4 @@ export function getAllPostsByTag$Plain(http: HttpClient, rootUrl: string, params
   );
 }
 
-getAllPostsByTag$Plain.PATH = '/api/v1/Post/GetPostsByTag/{id}/tag';
+getAllPostsByTag$Plain.PATH = '/api/forum/v1/Post/GetPostsByTag/{id}/tag';

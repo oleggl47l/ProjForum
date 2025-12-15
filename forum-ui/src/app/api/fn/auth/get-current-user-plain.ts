@@ -7,17 +7,14 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { Unit } from '../../models/unit';
-import { UpdatePostCommand } from '../../models/update-post-command';
+import { GetCurrentUserResultDto } from '../../models/get-current-user-result-dto';
 
-export interface UpdatePost$Plain$Params {
-      body?: UpdatePostCommand
+export interface GetCurrentUser$Plain$Params {
 }
 
-export function updatePost$Plain(http: HttpClient, rootUrl: string, params?: UpdatePost$Plain$Params, context?: HttpContext): Observable<StrictHttpResponse<Unit>> {
-  const rb = new RequestBuilder(rootUrl, updatePost$Plain.PATH, 'patch');
+export function getCurrentUser$Plain(http: HttpClient, rootUrl: string, params?: GetCurrentUser$Plain$Params, context?: HttpContext): Observable<StrictHttpResponse<GetCurrentUserResultDto>> {
+  const rb = new RequestBuilder(rootUrl, getCurrentUser$Plain.PATH, 'get');
   if (params) {
-    rb.body(params.body, 'application/*+json');
   }
 
   return http.request(
@@ -25,9 +22,9 @@ export function updatePost$Plain(http: HttpClient, rootUrl: string, params?: Upd
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Unit>;
+      return r as StrictHttpResponse<GetCurrentUserResultDto>;
     })
   );
 }
 
-updatePost$Plain.PATH = '/api/v1/Post/UpdatePost';
+getCurrentUser$Plain.PATH = '/api/identity/v1/Auth/getCurrentUser';

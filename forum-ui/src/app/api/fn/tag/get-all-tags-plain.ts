@@ -27,4 +27,4 @@ export function getAllTags$Plain(http: HttpClient, rootUrl: string, params?: Get
   );
 }
 
-getAllTags$Plain.PATH = '/api/v1/Tag/GetTags';
+getAllTags$Plain.PATH = '/api/forum/v1/Tag/GetTags';

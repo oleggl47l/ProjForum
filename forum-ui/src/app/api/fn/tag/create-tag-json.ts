@@ -30,4 +30,4 @@ export function createTag$Json(http: HttpClient, rootUrl: string, params?: Creat
   );
 }
 
-createTag$Json.PATH = '/api/v1/Tag/CreateTag';
+createTag$Json.PATH = '/api/forum/v1/Tag/CreateTag';

@@ -29,4 +29,4 @@ export function getCategoryById$Plain(http: HttpClient, rootUrl: string, params:
   );
 }
 
-getCategoryById$Plain.PATH = '/api/v1/Category/GetCategory/{id}';
+getCategoryById$Plain.PATH = '/api/forum/v1/Category/GetCategory/{id}';
