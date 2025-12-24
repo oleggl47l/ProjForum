@@ -3,7 +3,8 @@ using ProjForum.Forum.Domain.Interfaces;
 
 namespace ProjForum.Forum.Application.Forum.Commands.Posts;
 
-public class AddTagToPostCommandHandler(IPostRepository postRepository, ITagRepository tagRepository) : IRequestHandler<AddTagToPostCommand, Unit>
+public class AddTagToPostCommandHandler(IPostRepository postRepository, ITagRepository tagRepository)
+    : IRequestHandler<AddTagToPostCommand, Unit>
 {
     public async Task<Unit> Handle(AddTagToPostCommand request, CancellationToken cancellationToken)
     {

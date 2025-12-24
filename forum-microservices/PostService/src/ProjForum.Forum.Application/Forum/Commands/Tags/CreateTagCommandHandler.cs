@@ -10,7 +10,7 @@ public class CreateTagCommandHandler(ITagRepository tagRepository)
     {
         if (await tagRepository.TagExistsByNameAsync(request.Name))
             throw new InvalidOperationException($"Tag with name '{request.Name}' already exists.");
-        
+
         var tag = new Domain.Entities.Tag
         {
             Name = request.Name,

@@ -20,11 +20,10 @@ public class RemoveTagFromPostCommandValidator : AbstractValidator<RemoveTagFrom
         RuleFor(x => x.TagId)
             .NotEmpty().WithMessage("Tag ID is required.")
             .MustAsync(TagExists).WithMessage("Tag does not exist.");
-        
+
         RuleFor(x => new { x.PostId, x.TagId })
             .MustAsync(TagAssignedToPost)
             .WithMessage("The post does not contain this tag.");
-
     }
 
     private async Task<bool> PostExists(Guid postId, CancellationToken cancellationToken)
@@ -36,7 +35,7 @@ public class RemoveTagFromPostCommandValidator : AbstractValidator<RemoveTagFrom
     {
         return await _tagRepository.GetByIdAsync(tagId) != null;
     }
-    
+
     private async Task<bool> TagAssignedToPost(dynamic args, CancellationToken cancellationToken)
     {
         var postId = (Guid)args.PostId;

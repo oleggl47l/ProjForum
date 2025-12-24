@@ -4,7 +4,7 @@ using ProjForum.Forum.Domain.Models;
 
 namespace ProjForum.Forum.Application.Forum.Queries.Tags;
 
-public class GetTagByIdQueryHandler(ITagRepository tagRepository) : 
+public class GetTagByIdQueryHandler(ITagRepository tagRepository) :
     IRequestHandler<GetTagByIdQuery, TagModel?>
 {
     public async Task<TagModel?> Handle(GetTagByIdQuery request, CancellationToken cancellationToken)
