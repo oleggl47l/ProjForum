@@ -11,7 +11,7 @@ public class UpdatePostCommandValidator : AbstractValidator<UpdatePostCommand>
     {
         _categoryRepository = categoryRepository;
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Category ID is required.");
+            .NotEmpty().WithMessage("Post ID is required.");
 
 
         RuleFor(x => x.Title)

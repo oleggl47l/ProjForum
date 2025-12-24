@@ -26,7 +26,7 @@ public class UpdatePostCommandHandler(
             post.Title = request.Title;
         
         if (!string.IsNullOrWhiteSpace(request.Content))
-            post.Title = request.Content;
+            post.Content = request.Content;
         
         if (request.AuthorId != null && request.AuthorId != Guid.Empty)
             post.AuthorId = request.AuthorId.Value;
