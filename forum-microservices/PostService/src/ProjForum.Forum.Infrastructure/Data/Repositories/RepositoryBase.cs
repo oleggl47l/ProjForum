@@ -31,7 +31,7 @@ public class RepositoryBase<TEntity>(DbContext context) : IRepositoryBase<TEntit
         await Context.SaveChangesAsync();
     }
 
-    public async Task  Remove(Guid id)
+    public async Task Remove(Guid id)
     {
         var entity = await GetByIdAsync(id);
         if (entity == null) return;
