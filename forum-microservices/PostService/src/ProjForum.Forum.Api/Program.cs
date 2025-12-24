@@ -29,7 +29,7 @@ builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 
-// builder.Services.AddScoped<DatabaseSeeder>();
+builder.Services.AddScoped<DatabaseSeeder>();
 
 builder.Services.AddMediatR(cfg =>
 {
@@ -149,6 +149,12 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     dbContext.Database.Migrate();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+    await seeder.SeedAsync();
 }
 
 if (app.Environment.IsDevelopment())
