@@ -361,13 +361,11 @@
                     <div class="post-meta">
                       <div class="author-info">
                         <tui-avatar aria-hidden="true">
-                          {{ post.authorId?.substring(0, 2) || 'AU' }}
+                          {{ getInitials(getAuthorLogin(post.authorId)) }}
                         </tui-avatar>
                         <div class="author-details">
-                          <span class="author-id">Пользователь {{ post.authorId?.substring(0, 8) }}</span>
-                          <span class="post-date">
-                            {{ formatDate(post.createdAt) }}
-                          </span>
+                          <span class="author-id">{{ getAuthorLogin(post.authorId) }}</span>
+                          <span class="post-date">{{ formatDate(post.createdAt) }}</span>
                         </div>
                       </div>
                     </div>
@@ -424,30 +422,22 @@
                   <!-- Футер поста -->
                   <div class="post-footer">
                     <div class="post-stats">
-                      <span class="stat" tabindex="0">
-                        0 просмотров
-                      </span>
+<!--                      <span class="stat" tabindex="0">-->
+<!--                        0 просмотров-->
+<!--                      </span>-->
 
-                      <span class="stat" tabindex="0">
+                      <span
+                        class="stat"
+                        tabindex="0"
+                        role="button"
+                        (click)="toggleCommentsForPost(post.id, $event)"
+                        (keyup.enter)="toggleCommentsForPost(post.id, $event)"
+                        aria-label="Показать/скрыть комментарии"
+                      >
                         <span class="stat-icon">💬</span>
                         {{ getCommentsCount(post.id) }} комментариев
                       </span>
 
-                      <button
-                        tuiButton
-                        size="s"
-                        type="button"
-                        (click)="toggleCommentsForPost(post.id, $event)"
-                        (keyup.enter)="toggleCommentsForPost(post.id, $event)"
-                        style="margin-left: auto;"
-                        aria-label="Показать/скрыть комментарии"
-                      >
-                        @if (isCommentsExpanded(post.id)) {
-                          Скрыть
-                        } @else {
-                          Комментарии
-                        }
-                      </button>
                     </div>
                   </div>
 
@@ -474,8 +464,8 @@
                         <!-- Форма добавления -->
                         <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
                           <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem; color: rgba(255,255,255,0.75); font-size: 0.9rem;">
-                            <div>Автор: <strong>{{ currentUser()?.userName || 'Гость' }}</strong></div>
-                            <div>Время: <strong>{{ formatDateTime(nowIso) }}</strong></div>
+<!--                            <div>Автор: <strong>{{ currentUser()?.userName || 'Гость' }}</strong></div>-->
+<!--                            <div>Время: <strong>{{ formatDateTime(nowIso) }}</strong></div>-->
                           </div>
 
                           <textarea
@@ -484,7 +474,7 @@
                             (ngModelChange)="setNewCommentContent(post.id || '', $event)"
                             placeholder="Напишите комментарий..."
                             rows="3"
-                            style="width: 100%; resize: vertical; border-radius: 12px;"
+                            style="width: 100%; resize: vertical; border-radius: 12px; font-size: 15px"
                             aria-label="Текст комментария"
                           ></textarea>
 

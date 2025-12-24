@@ -1,7 +1,17 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpHeaders,
+} from '@angular/common/http';
 import { catchError, lastValueFrom } from 'rxjs';
 
 // Taiga UI Core для standalone
@@ -25,7 +35,10 @@ import { DeleteCommentCommand } from '../../../api/models/delete-comment-command
 import { UserDto } from '../../../api/models/user-dto';
 
 // Импортируем компонент диалога
-import { CreatePostDialogComponent, NewPostData } from '../../../features/post/create-post-dialog/create-post-dialog.component';
+import {
+  CreatePostDialogComponent,
+  NewPostData,
+} from '../../../features/post/create-post-dialog/create-post-dialog.component';
 
 // Интерфейс для ответа текущего пользователя (как в profile-page)
 interface CurrentUserResponse {
@@ -46,7 +59,7 @@ type StringMap<T> = Record<string, T>;
     TuiAvatar,
     TuiBadge,
     TuiPagination,
-    CreatePostDialogComponent
+    CreatePostDialogComponent,
   ],
   templateUrl: './home-page.component.html',
   styleUrls: ['./home-page.component.less'],
@@ -83,12 +96,17 @@ export class HomePageComponent implements OnInit {
   protected readonly isCreatePostDialogOpen = signal(false);
 
   // =========================
-  // Комментарии (НОВОЕ)
+  // Комментарии
   // =========================
   protected readonly commentsExpandedByPostId = signal<StringMap<boolean>>({});
   protected readonly commentsLoadingByPostId = signal<StringMap<boolean>>({});
-  protected readonly commentsErrorByPostId = signal<StringMap<string | null>>({});
+  protected readonly commentsErrorByPostId = signal<StringMap<string | null>>(
+    {}
+  );
   protected readonly commentsByPostId = signal<StringMap<CommentModel[]>>({});
+
+  // Кеш количества комментариев по postId (чтобы счетчик обновлялся до раскрытия)
+  protected readonly commentCountByPostId = signal<Record<string, number>>({});
 
   // Черновик нового комментария для каждого поста
   protected readonly newCommentContentByPostId = signal<StringMap<string>>({});
@@ -112,7 +130,7 @@ export class HomePageComponent implements OnInit {
       return null;
     }
     return new HttpHeaders({
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     });
   }
 
@@ -124,7 +142,10 @@ export class HomePageComponent implements OnInit {
   ngOnInit(): void {
     console.log('HomePageComponent initialized');
     console.log('Token exists:', !!localStorage.getItem('accessToken'));
-    console.log('Token value:', localStorage.getItem('accessToken')?.substring(0, 20) + '...');
+    console.log(
+      'Token value:',
+      localStorage.getItem('accessToken')?.substring(0, 20) + '...'
+    );
 
     this.loadInitialData().catch(error => {
       console.error('Failed to load initial data:', error);
@@ -138,14 +159,12 @@ export class HomePageComponent implements OnInit {
     this.errorMessage.set(null);
 
     try {
-      // 1. Загружаем текущего пользователя
       await this.loadCurrentUser();
 
-      // 2. Загружаем все данные параллельно
       await Promise.all([
         this.loadPosts(),
         this.loadCategories(),
-        this.loadTags()
+        this.loadTags(),
       ]);
 
       console.log('Initial data loaded successfully');
@@ -171,33 +190,39 @@ export class HomePageComponent implements OnInit {
     console.log('Loading current user with token length:', token.length);
 
     try {
-      // Используем прямой запрос с заголовком, как в profile-page
       const response = await lastValueFrom(
-        this.http.get<CurrentUserResponse>(
-          `${this.apiConfig.rootUrl}/api/identity/v1/Auth/getCurrentUser`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        ).pipe(
-          catchError((error: HttpErrorResponse) => {
-            console.error('Error getting current user:', error);
-            console.error('Error status:', error.status);
-            console.error('Error message:', error.message);
-            console.error('Error headers:', error.headers);
-
-            if (error.status === 401) {
-              console.log('User not authenticated - token might be invalid or expired');
-              // Если токен невалидный, очищаем его
-              localStorage.removeItem('accessToken');
-              localStorage.removeItem('refreshToken');
-              this.errorMessage.set('Сессия истекла. Пожалуйста, войдите снова.');
-            } else if (error.status === 403) {
-              console.log('Forbidden - insufficient permissions');
-              this.errorMessage.set('Недостаточно прав для выполнения операции');
+        this.http
+          .get<CurrentUserResponse>(
+            `${this.apiConfig.rootUrl}/api/identity/v1/Auth/getCurrentUser`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
             }
-            throw error;
-          })
-        )
+          )
+          .pipe(
+            catchError((error: HttpErrorResponse) => {
+              console.error('Error getting current user:', error);
+              console.error('Error status:', error.status);
+              console.error('Error message:', error.message);
+              console.error('Error headers:', error.headers);
+
+              if (error.status === 401) {
+                console.log(
+                  'User not authenticated - token might be invalid or expired'
+                );
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                this.errorMessage.set(
+                  'Сессия истекла. Пожалуйста, войдите снова.'
+                );
+              } else if (error.status === 403) {
+                console.log('Forbidden - insufficient permissions');
+                this.errorMessage.set(
+                  'Недостаточно прав для выполнения операции'
+                );
+              }
+              throw error;
+            })
+          )
       );
 
       if (response?.result?.success && response.currentUser) {
@@ -207,7 +232,6 @@ export class HomePageComponent implements OnInit {
         console.log('Failed to load current user - response:', response);
       }
     } catch (error: unknown) {
-      // Игнорируем ошибку, если пользователь не авторизован
       console.log('User might not be logged in or token expired');
       if (error instanceof HttpErrorResponse && error.status !== 401) {
         console.error('Error loading current user:', error);
@@ -226,50 +250,56 @@ export class HomePageComponent implements OnInit {
         headers = { Authorization: `Bearer ${token}` };
       }
 
-      // Используем прямой запрос с заголовком
       const response = await lastValueFrom(
-        this.http.get<PostModel[]>(
-          `${this.apiConfig.rootUrl}/api/forum/v1/Post/GetPosts`,
-          { headers }
-        ).pipe(
-          catchError((error: HttpErrorResponse) => {
-            console.error('Error loading posts:', error);
-            console.error('Error status:', error.status);
+        this.http
+          .get<PostModel[]>(
+            `${this.apiConfig.rootUrl}/api/forum/v1/Post/GetPosts`,
+            { headers }
+          )
+          .pipe(
+            catchError((error: HttpErrorResponse) => {
+              console.error('Error loading posts:', error);
+              console.error('Error status:', error.status);
 
-            if (error.status === 401) {
-              console.log('Posts require authentication, but token is missing or invalid');
-              // Не устанавливаем ошибку, так как посты могут требовать авторизации
-              return [];
-            } else if (error.status === 403) {
-              this.errorMessage.set('Недостаточно прав для просмотра постов');
-            } else {
-              this.errorMessage.set('Ошибка загрузки постов');
-            }
-            throw error;
-          })
-        )
+              if (error.status === 401) {
+                console.log(
+                  'Posts require authentication, but token is missing or invalid'
+                );
+                return [];
+              } else if (error.status === 403) {
+                this.errorMessage.set('Недостаточно прав для просмотра постов');
+              } else {
+                this.errorMessage.set('Ошибка загрузки постов');
+              }
+              throw error;
+            })
+          )
       );
 
       const posts = response || [];
       console.log(`Loaded ${posts.length} posts`);
 
-      if (posts.length > 0) {
-        console.log('First post sample:', {
-          id: posts[0].id,
-          title: posts[0].title,
-          authorId: posts[0].authorId,
-          category: posts[0].category,
-        });
-      }
-
       this.allPosts.set(posts);
-      this.posts.set(posts); // Изначально показываем все посты
+      this.posts.set(posts);
 
+      // Подгружаем ники авторов постов (чтобы в карточках сразу был ник, а не id)
+      const authorIds = Array.from(
+        new Set(posts.map(p => p.authorId).filter((x): x is string => !!x))
+      );
+      void this.preloadUserNames(authorIds);
+
+      // Сразу обновляем счетчики комментариев без раскрытия
+      this.commentCountByPostId.set({});
+      for (const p of posts) {
+        if (p.id) {
+          void this.refreshCommentCountForPost(p.id);
+        }
+      }
     } catch (error: unknown) {
       console.error('Failed to load posts:', error);
-      // Устанавливаем пустой массив в случае ошибки
       this.allPosts.set([]);
       this.posts.set([]);
+      this.commentCountByPostId.set({});
     }
   }
 
@@ -284,26 +314,24 @@ export class HomePageComponent implements OnInit {
       }
 
       const response = await lastValueFrom(
-        this.http.get<CategoryModel[]>(
-          `${this.apiConfig.rootUrl}/api/forum/v1/Category/GetCategories`,
-          { headers }
-        ).pipe(
-          catchError((error: HttpErrorResponse) => {
-            console.error('Error loading categories:', error);
-            if (error.status === 401) {
-              console.log('Categories require authentication');
-              // Возвращаем пустой массив для категорий
-              return [];
-            }
-            throw error;
-          })
-        )
+        this.http
+          .get<CategoryModel[]>(
+            `${this.apiConfig.rootUrl}/api/forum/v1/Category/GetCategories`,
+            { headers }
+          )
+          .pipe(
+            catchError((error: HttpErrorResponse) => {
+              console.error('Error loading categories:', error);
+              if (error.status === 401) {
+                console.log('Categories require authentication');
+                return [];
+              }
+              throw error;
+            })
+          )
       );
 
-      const categories = response || [];
-      console.log(`Loaded ${categories.length} categories`);
-      this.categories.set(categories);
-
+      this.categories.set(response || []);
     } catch (error) {
       console.error('Failed to load categories, using empty array:', error);
       this.categories.set([]);
@@ -321,27 +349,26 @@ export class HomePageComponent implements OnInit {
       }
 
       const response = await lastValueFrom(
-        this.http.get<TagModel[]>(
-          `${this.apiConfig.rootUrl}/api/forum/v1/Tag/GetTags`,
-          { headers }
-        ).pipe(
-          catchError((error: HttpErrorResponse) => {
-            console.error('Error loading tags:', error);
-            if (error.status === 401) {
-              console.log('Tags require authentication');
-              // Возвращаем пустой массив для тегов
-              return [];
-            }
-            throw error;
-          })
-        )
+        this.http
+          .get<TagModel[]>(
+            `${this.apiConfig.rootUrl}/api/forum/v1/Tag/GetTags`,
+            { headers }
+          )
+          .pipe(
+            catchError((error: HttpErrorResponse) => {
+              console.error('Error loading tags:', error);
+              if (error.status === 401) {
+                console.log('Tags require authentication');
+                return [];
+              }
+              throw error;
+            })
+          )
       );
 
       const tags = response || [];
-      console.log(`Loaded ${tags.length} tags`);
       this.allTags.set(tags);
       this.filteredTags.set(tags);
-
     } catch (error) {
       console.error('Failed to load tags, using empty array:', error);
       this.allTags.set([]);
@@ -349,46 +376,40 @@ export class HomePageComponent implements OnInit {
     }
   }
 
-  // Методы для фильтрации (остаются без изменений)
+  // -------------------------
+  // Фильтры
+  // -------------------------
   protected applyFilters(): void {
-    console.log('Applying filters...');
     this.isLoading.set(true);
 
     let filtered = [...this.allPosts()];
 
-    // Фильтрация по поисковому запросу
     const searchQuery = this.searchQuery().toLowerCase().trim();
     if (searchQuery) {
-      filtered = filtered.filter(post =>
-        (post.title?.toLowerCase().includes(searchQuery)) ||
-        (post.content?.toLowerCase().includes(searchQuery)) ||
-        (post.category?.toLowerCase().includes(searchQuery))
+      filtered = filtered.filter(
+        post =>
+          post.title?.toLowerCase().includes(searchQuery) ||
+          post.content?.toLowerCase().includes(searchQuery) ||
+          post.category?.toLowerCase().includes(searchQuery)
       );
-      console.log(`Filtered by search query "${searchQuery}": ${filtered.length} posts`);
     }
 
-    // Фильтрация по тегам
     const selectedTags = this.selectedTags();
     if (selectedTags.length > 0) {
       filtered = filtered.filter(post =>
         post.tagNames?.some(tag => selectedTags.includes(tag))
       );
-      console.log(`Filtered by tags ${selectedTags.join(', ')}: ${filtered.length} posts`);
     }
 
-    // Фильтрация по категории
     const selectedCategory = this.selectedCategory();
     if (selectedCategory) {
       filtered = filtered.filter(post => post.category === selectedCategory);
-      console.log(`Filtered by category "${selectedCategory}": ${filtered.length} posts`);
     }
 
-    // Скрыть черновики, если не выбрано иное
     if (!this.showDrafts()) {
       filtered = filtered.filter(post => post.isPublished);
     }
 
-    // Сортировка с проверкой на существование createdAt
     filtered.sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -452,7 +473,6 @@ export class HomePageComponent implements OnInit {
   }
 
   protected clearFilters(): void {
-    console.log('Clearing all filters');
     this.searchQuery.set('');
     this.selectedTags.set([]);
     this.selectedCategory.set(null);
@@ -469,7 +489,6 @@ export class HomePageComponent implements OnInit {
   }
 
   protected sortByCategory(category: string | null): void {
-    console.log('Sorting by category:', category);
     this.selectedCategory.set(category);
     this.applyFilters();
   }
@@ -484,16 +503,17 @@ export class HomePageComponent implements OnInit {
     return Math.ceil(this.posts().length / this.itemsPerPage);
   }
 
+  // -------------------------
+  // Форматирование
+  // -------------------------
   protected formatDate(dateString: string | undefined | null): string {
-    if (!dateString) {
-      return 'Дата не указана';
-    }
+    if (!dateString) return 'Дата не указана';
 
     try {
       return new Date(dateString).toLocaleDateString('ru-RU', {
         day: 'numeric',
         month: 'short',
-        year: 'numeric'
+        year: 'numeric',
       });
     } catch (error) {
       console.error('Error formatting date:', error);
@@ -501,7 +521,6 @@ export class HomePageComponent implements OnInit {
     }
   }
 
-  // НОВОЕ: дата+время (для комментариев)
   protected formatDateTime(dateString: string | undefined | null): string {
     if (!dateString) return 'Время не указано';
     try {
@@ -520,11 +539,12 @@ export class HomePageComponent implements OnInit {
 
   protected getPostExcerpt(content: string | null | undefined): string {
     if (!content) return '';
-    const plainText = content.replace(/<[^>]*>/g, '');
-    return plainText.length > 100 ? plainText.substring(0, 100) + '...' : plainText;
+    return content.replace(/<[^>]*>/g, '');
   }
 
-  // Методы для работы с диалогом создания поста
+  // -------------------------
+  // Диалог создания поста
+  // -------------------------
   protected openCreatePostDialog(): void {
     this.isCreatePostDialogOpen.set(true);
   }
@@ -535,12 +555,9 @@ export class HomePageComponent implements OnInit {
 
   protected onPostCreated(newPostData: NewPostData): void {
     console.log('New post created:', newPostData);
-    // TODO: Реализовать обновление списка постов после создания нового
-    // Пока просто закрываем диалог
     this.closeCreatePostDialog();
   }
 
-  // Геттер для currentPage для работы с пагинацией
   protected get currentPageValue(): number {
     return this.currentPage();
   }
@@ -549,9 +566,9 @@ export class HomePageComponent implements OnInit {
     this.currentPage.set(value);
   }
 
-  // =========================
-  // Комментарии: UI helpers (НОВОЕ)
-  // =========================
+  // -------------------------
+  // Комментарии: UI helpers
+  // -------------------------
   protected isCommentsExpanded(postId: string | null | undefined): boolean {
     if (!postId) return false;
     return this.commentsExpandedByPostId()[postId] ?? false;
@@ -567,13 +584,19 @@ export class HomePageComponent implements OnInit {
     return this.commentsErrorByPostId()[postId] ?? null;
   }
 
-  protected getCommentsForPost(postId: string | null | undefined): CommentModel[] {
+  protected getCommentsForPost(
+    postId: string | null | undefined
+  ): CommentModel[] {
     if (!postId) return [];
     return this.commentsByPostId()[postId] ?? [];
   }
 
   protected getCommentsCount(postId: string | null | undefined): number {
     if (!postId) return 0;
+
+    const count = this.commentCountByPostId()[postId];
+    if (typeof count === 'number') return count;
+
     const cached = this.commentsByPostId()[postId];
     return cached ? cached.length : 0;
   }
@@ -610,19 +633,21 @@ export class HomePageComponent implements OnInit {
 
     this.editingCommentId.set(comment.id);
     this.editingCommentContent.set(comment.content ?? '');
-    console.log('[comments] startEditComment', { commentId: comment.id });
   }
 
   protected cancelEditComment(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
 
-    console.log('[comments] cancelEditComment', { commentId: this.editingCommentId() });
     this.editingCommentId.set(null);
     this.editingCommentContent.set('');
   }
 
-  protected async toggleCommentsForPost(postId: string | null | undefined, event: Event): Promise<void> {
+  // Вся логика раскрытия/загрузки комментариев
+  protected async toggleCommentsForPost(
+    postId: string | null | undefined,
+    event: Event
+  ): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
 
@@ -633,18 +658,19 @@ export class HomePageComponent implements OnInit {
     map[postId] = !expanded;
     this.commentsExpandedByPostId.set(map);
 
-    console.log('[comments] toggleCommentsForPost', { postId, expanded: !expanded });
-
     if (!expanded) {
-      // раскрыли -> загружаем
       await this.loadCommentsByPost(postId);
     }
   }
 
-  // =========================
-  // Комментарии: API calls (НОВОЕ)
-  // =========================
-  private setPostBool(mapSignal: ReturnType<typeof signal<StringMap<boolean>>>, postId: string, value: boolean): void {
+  // -------------------------
+  // Комментарии: API
+  // -------------------------
+  private setPostBool(
+    mapSignal: ReturnType<typeof signal<StringMap<boolean>>>,
+    postId: string,
+    value: boolean
+  ): void {
     const map = { ...mapSignal() };
     map[postId] = value;
     mapSignal.set(map);
@@ -656,9 +682,23 @@ export class HomePageComponent implements OnInit {
     this.commentsErrorByPostId.set(map);
   }
 
-  private async loadCommentsByPost(postId: string): Promise<void> {
-    console.log('[comments] loadCommentsByPost start', { postId });
+  // Обновить только количество комментариев для поста (использует GetCommentsByPost) [file:2]
+  private async refreshCommentCountForPost(postId: string): Promise<void> {
+    try {
+      const url = `${this.apiConfig.rootUrl}/api/forum/v1/Comment/GetCommentsByPost/${postId}/post`;
+      const comments = await lastValueFrom(
+        this.http.get<CommentModel[]>(url, this.getHttpOptionsWithAuth())
+      );
 
+      const map = { ...this.commentCountByPostId() };
+      map[postId] = (comments ?? []).length;
+      this.commentCountByPostId.set(map);
+    } catch {
+      // не ломаем UI
+    }
+  }
+
+  private async loadCommentsByPost(postId: string): Promise<void> {
     this.setPostBool(this.commentsLoadingByPostId, postId, true);
     this.setPostError(postId, null);
 
@@ -669,18 +709,20 @@ export class HomePageComponent implements OnInit {
       );
 
       const comments = response ?? [];
-      console.log('[comments] loadCommentsByPost success', { postId, count: comments.length });
 
       const cache = { ...this.commentsByPostId() };
       cache[postId] = comments;
       this.commentsByPostId.set(cache);
 
-      // Подгружаем логины авторов
+      // синхронизируем счетчик
+      const countMap = { ...this.commentCountByPostId() };
+      countMap[postId] = comments.length;
+      this.commentCountByPostId.set(countMap);
+
       const authorIds = Array.from(
         new Set(comments.map(c => c.authorId).filter((x): x is string => !!x))
       );
       await this.preloadUserNames(authorIds);
-
     } catch (e) {
       console.error('[comments] loadCommentsByPost error', e);
       this.setPostError(postId, 'Не удалось загрузить комментарии');
@@ -689,7 +731,10 @@ export class HomePageComponent implements OnInit {
     }
   }
 
-  protected async createComment(postId: string | null | undefined, event: Event): Promise<void> {
+  protected async createComment(
+    postId: string | null | undefined,
+    event: Event
+  ): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
 
@@ -707,22 +752,15 @@ export class HomePageComponent implements OnInit {
       return;
     }
 
-    const body: CreateCommentCommand = {
-      postId,
-      content,
-    };
-
-    console.log('[comments] createComment start', { postId, contentLength: content.length });
+    const body: CreateCommentCommand = { postId, content };
 
     try {
       const url = `${this.apiConfig.rootUrl}/api/forum/v1/Comment/CreateComment`;
-      await lastValueFrom(this.http.post(url, body, this.getHttpOptionsWithAuth()));
-      console.log('[comments] createComment success', { postId });
+      await lastValueFrom(
+        this.http.post(url, body, this.getHttpOptionsWithAuth())
+      );
 
-      // очистить поле
       this.setNewCommentContent(postId, '');
-
-      // перезагрузить список
       await this.loadCommentsByPost(postId);
     } catch (e) {
       console.error('[comments] createComment error', e);
@@ -730,7 +768,11 @@ export class HomePageComponent implements OnInit {
     }
   }
 
-  protected async saveEditedComment(comment: CommentModel, postId: string | null | undefined, event: Event): Promise<void> {
+  protected async saveEditedComment(
+    comment: CommentModel,
+    postId: string | null | undefined,
+    event: Event
+  ): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
 
@@ -744,21 +786,16 @@ export class HomePageComponent implements OnInit {
       return;
     }
 
-    const body: UpdateCommentCommand = {
-      id: comment.id,
-      content,
-    };
-
-    console.log('[comments] updateComment start', { commentId: comment.id, postId, contentLength: content.length });
+    const body: UpdateCommentCommand = { id: comment.id, content };
 
     try {
       const url = `${this.apiConfig.rootUrl}/api/forum/v1/Comment/UpdateComment`;
-      await lastValueFrom(this.http.patch(url, body, this.getHttpOptionsWithAuth()));
-      console.log('[comments] updateComment success', { commentId: comment.id });
+      await lastValueFrom(
+        this.http.patch(url, body, this.getHttpOptionsWithAuth())
+      );
 
       this.editingCommentId.set(null);
       this.editingCommentContent.set('');
-
       await this.loadCommentsByPost(postId);
     } catch (e) {
       console.error('[comments] updateComment error', e);
@@ -766,7 +803,11 @@ export class HomePageComponent implements OnInit {
     }
   }
 
-  protected async deleteComment(comment: CommentModel, postId: string | null | undefined, event: Event): Promise<void> {
+  protected async deleteComment(
+    comment: CommentModel,
+    postId: string | null | undefined,
+    event: Event
+  ): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
 
@@ -779,8 +820,6 @@ export class HomePageComponent implements OnInit {
 
     const body: DeleteCommentCommand = { id: comment.id };
 
-    console.log('[comments] deleteComment start', { commentId: comment.id, postId });
-
     try {
       const url = `${this.apiConfig.rootUrl}/api/forum/v1/Comment/DeleteComment`;
       await lastValueFrom(
@@ -790,7 +829,6 @@ export class HomePageComponent implements OnInit {
         })
       );
 
-      console.log('[comments] deleteComment success', { commentId: comment.id });
       await this.loadCommentsByPost(postId);
     } catch (e) {
       console.error('[comments] deleteComment error', e);
@@ -798,12 +836,15 @@ export class HomePageComponent implements OnInit {
     }
   }
 
-  // =========================
-  // Identity: логины авторов (НОВОЕ)
-  // =========================
+  // -------------------------
+  // Identity: логины авторов
+  // -------------------------
   protected getAuthorLogin(authorId: string | null | undefined): string {
     if (!authorId) return 'unknown';
-    return this.userNameById()[authorId] ?? `Пользователь ${authorId.substring(0, 8)}`;
+    return (
+      this.userNameById()[authorId] ??
+      `Пользователь ${authorId.substring(0, 8)}`
+    );
   }
 
   protected getInitials(text: string | null | undefined): string {
@@ -819,16 +860,15 @@ export class HomePageComponent implements OnInit {
 
       try {
         const url = `${this.apiConfig.rootUrl}/api/identity/Users/${id}`;
-        const user = await lastValueFrom(this.http.get<UserDto>(url, this.getHttpOptionsWithAuth()));
-        const login = user?.userName ?? `Пользователь ${id.substring(0, 8)}`;
+        const user = await lastValueFrom(
+          this.http.get<UserDto>(url, this.getHttpOptionsWithAuth())
+        );
 
+        const login = user?.userName ?? `Пользователь ${id.substring(0, 8)}`;
         const map = { ...this.userNameById() };
         map[id] = login;
         this.userNameById.set(map);
-
-        console.log('[identity] cached userName', { id, login });
-      } catch (e) {
-        console.error('[identity] getUserById error', { id, e });
+      } catch {
         const map = { ...this.userNameById() };
         map[id] = `Пользователь ${id.substring(0, 8)}`;
         this.userNameById.set(map);
