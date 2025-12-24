@@ -61,6 +61,8 @@ export class ProfilePageComponent implements OnInit {
   protected readonly userData = signal<UserDto | null>(null);
   protected readonly posts = signal<Post[]>([]);
 
+  protected readonly commentsCount = signal(0);
+
   ngOnInit(): void {
     console.log(
       'ProfilePageComponent initialized - URL:',
@@ -167,6 +169,7 @@ export class ProfilePageComponent implements OnInit {
 
       // 3. Получаем посты пользователя из форумного сервиса
       await this.loadUserPosts(userId, token);
+      await this.loadUserCommentsCount(userId, token);
     } catch (error: unknown) {
       console.error('Error loading user data:', error);
       if (error instanceof Error) {
@@ -176,6 +179,22 @@ export class ProfilePageComponent implements OnInit {
       }
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  private async loadUserCommentsCount(userId: string, token: string): Promise<void> {
+    try {
+      const url = `${this.apiConfig.rootUrl}/api/forum/v1/Comment/GetCommentsByAuthor/${userId}/author`;
+      const comments = await lastValueFrom(
+        this.http.get<unknown[]>(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      );
+
+      this.commentsCount.set((comments ?? []).length);
+    } catch (e) {
+      console.error('Error loading comments count:', e);
+      this.commentsCount.set(0);
     }
   }
 

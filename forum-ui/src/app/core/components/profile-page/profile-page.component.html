@@ -5,7 +5,7 @@
       <!-- Левая часть с кнопкой "На главную" -->
       <div class="header-left">
         <button class="home-button" (click)="goHome()" [disabled]="isLoading()">
-          Все посты
+          Главная
         </button>
       </div>
 
@@ -140,7 +140,7 @@
                         <div class="stat-label">Всего постов</div>
                       </div>
                       <div class="stat-item">
-                        <div class="stat-value">0</div>
+                        <div class="stat-value">{{ commentsCount() }}</div>
                         <div class="stat-label">Комментариев</div>
                       </div>
                       <div class="stat-item">
@@ -193,9 +193,6 @@
                           @if (post.tags && post.tags.length > 0) {
                             <span class="stat">Теги: {{ post.tags.join(', ') }}</span>
                           }
-                          <span class="stat">
-                    {{ post.isPublished ? '✅ Опубликован' : '📝 Черновик' }}
-                  </span>
                         </div>
                       </div>
                     </div>
