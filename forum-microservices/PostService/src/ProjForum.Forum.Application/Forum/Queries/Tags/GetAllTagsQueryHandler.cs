@@ -16,7 +16,7 @@ public class GetAllTagsQueryHandler(ITagRepository tagRepository)
             Id = tag.Id,
             Name = tag.Name
         });
-        
+
         return tagModels;
     }
 }

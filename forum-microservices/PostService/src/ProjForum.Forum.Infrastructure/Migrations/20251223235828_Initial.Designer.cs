@@ -12,7 +12,7 @@ using ProjForum.Forum.Infrastructure.Data;
 namespace ProjForum.Forum.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251211091428_Initial")]
+    [Migration("20251223235828_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -46,6 +46,35 @@ namespace ProjForum.Forum.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("ProjForum.Forum.Domain.Entities.Comment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("ProjForum.Forum.Domain.Entities.Post", b =>
@@ -117,6 +146,15 @@ namespace ProjForum.Forum.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Tags");
+                });
+
+            modelBuilder.Entity("ProjForum.Forum.Domain.Entities.Comment", b =>
+                {
+                    b.HasOne("ProjForum.Forum.Domain.Entities.Post", null)
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ProjForum.Forum.Domain.Entities.Post", b =>

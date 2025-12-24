@@ -20,7 +20,7 @@ public class AddTagToPostCommandValidator : AbstractValidator<AddTagToPostComman
         RuleFor(x => x.TagId)
             .NotEmpty().WithMessage("Tag ID is required.")
             .MustAsync(TagExists).WithMessage("Tag does not exist.");
-        
+
         RuleFor(x => new { x.PostId, x.TagId })
             .MustAsync(TagNotYetAssignedToPost)
             .WithMessage("The post already contains this tag.");
@@ -35,7 +35,7 @@ public class AddTagToPostCommandValidator : AbstractValidator<AddTagToPostComman
     {
         return await _tagRepository.GetByIdAsync(tagId) != null;
     }
-    
+
     private async Task<bool> TagNotYetAssignedToPost(dynamic args, CancellationToken cancellationToken)
     {
         var postId = (Guid)args.PostId;

@@ -7,7 +7,7 @@ public class CreateTagCommandValidator : AbstractValidator<CreateTagCommand>
 {
     public CreateTagCommandValidator(ITagRepository tagRepository)
     {
-        RuleFor(x=>x.Name)
+        RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name cannot be empty")
             .MaximumLength(100).WithMessage("Name cannot be longer than 100 characters")
             .CustomAsync(async (name, context, _) =>

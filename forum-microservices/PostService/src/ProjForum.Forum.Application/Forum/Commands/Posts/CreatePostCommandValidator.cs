@@ -26,7 +26,7 @@ public class CreatePostCommandValidator : AbstractValidator<CreatePostCommand>
             .NotEmpty().WithMessage("Tag name cannot be empty.")
             .MaximumLength(100).WithMessage("Tag name should not exceed 100 characters.")
             .When(x => x.TagNames != null && x.TagNames.Any());
-        
+
         RuleFor(x => x.TagNames)
             .Must((_, tagNames) => AreTagsUnique(tagNames))
             .WithMessage("Tag names must be unique.");
@@ -37,7 +37,7 @@ public class CreatePostCommandValidator : AbstractValidator<CreatePostCommand>
         var category = await _categoryRepository.GetCategoryByNameAsync(categoryName);
         return category != null;
     }
-    
+
     private bool AreTagsUnique(IEnumerable<string>? tagNames)
     {
         if (tagNames == null)

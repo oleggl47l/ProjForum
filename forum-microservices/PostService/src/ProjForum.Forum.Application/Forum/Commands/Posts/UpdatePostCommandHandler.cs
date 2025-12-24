@@ -12,7 +12,7 @@ public class UpdatePostCommandHandler(
         var post = await postRepository.GetByIdAsync(request.Id);
         if (post == null)
             throw new KeyNotFoundException($"Post with id {request.Id} not found.");
-        
+
         if (!string.IsNullOrWhiteSpace(request.CategoryName))
         {
             var category = await categoryRepository.GetCategoryByNameAsync(request.CategoryName);
@@ -24,18 +24,18 @@ public class UpdatePostCommandHandler(
 
         if (!string.IsNullOrWhiteSpace(request.Title))
             post.Title = request.Title;
-        
+
         if (!string.IsNullOrWhiteSpace(request.Content))
-            post.Title = request.Content;
-        
+            post.Content = request.Content;
+
         if (request.AuthorId != null && request.AuthorId != Guid.Empty)
             post.AuthorId = request.AuthorId.Value;
-        
+
         if (request.IsPublished.HasValue)
             post.IsPublished = request.IsPublished.Value;
-        
+
         post.UpdatedAt = DateTime.UtcNow;
-        
+
         await postRepository.Update(post);
 
         return Unit.Value;
