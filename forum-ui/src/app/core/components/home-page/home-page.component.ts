@@ -17,6 +17,13 @@ import { TagModel } from '../../../api/models/tag-model';
 import { CurrentUserDto } from '../../../api/models/current-user-dto';
 import { OperationResultDto } from '../../../api/models/operation-result-dto';
 
+// Комментарии (модели из сгенерированного api/models)
+import { CommentModel } from '../../../api/models/comment-model';
+import { CreateCommentCommand } from '../../../api/models/create-comment-command';
+import { UpdateCommentCommand } from '../../../api/models/update-comment-command';
+import { DeleteCommentCommand } from '../../../api/models/delete-comment-command';
+import { UserDto } from '../../../api/models/user-dto';
+
 // Импортируем компонент диалога
 import { CreatePostDialogComponent, NewPostData } from '../../../features/post/create-post-dialog/create-post-dialog.component';
 
@@ -25,6 +32,8 @@ interface CurrentUserResponse {
   result: OperationResultDto;
   currentUser: CurrentUserDto;
 }
+
+type StringMap<T> = Record<string, T>;
 
 @Component({
   selector: 'app-home-page',
@@ -73,6 +82,29 @@ export class HomePageComponent implements OnInit {
   // Диалог создания поста
   protected readonly isCreatePostDialogOpen = signal(false);
 
+  // =========================
+  // Комментарии (НОВОЕ)
+  // =========================
+  protected readonly commentsExpandedByPostId = signal<StringMap<boolean>>({});
+  protected readonly commentsLoadingByPostId = signal<StringMap<boolean>>({});
+  protected readonly commentsErrorByPostId = signal<StringMap<string | null>>({});
+  protected readonly commentsByPostId = signal<StringMap<CommentModel[]>>({});
+
+  // Черновик нового комментария для каждого поста
+  protected readonly newCommentContentByPostId = signal<StringMap<string>>({});
+
+  // Редактирование
+  protected readonly editingCommentId = signal<string | null>(null);
+  protected readonly editingCommentContent = signal<string>('');
+
+  // Кеш логинов по authorId (Identity)
+  protected readonly userNameById = signal<StringMap<string>>({});
+
+  // ВАЖНО: для шаблона (нельзя new Date() в html)
+  protected get nowIso(): string {
+    return new Date().toISOString();
+  }
+
   // Метод для получения заголовков с токеном
   private getAuthHeaders(): HttpHeaders | null {
     const token = localStorage.getItem('accessToken');
@@ -82,6 +114,11 @@ export class HomePageComponent implements OnInit {
     return new HttpHeaders({
       Authorization: `Bearer ${token}`
     });
+  }
+
+  private getHttpOptionsWithAuth(): { headers?: HttpHeaders } {
+    const headers = this.getAuthHeaders();
+    return headers ? { headers } : {};
   }
 
   ngOnInit(): void {
@@ -464,6 +501,23 @@ export class HomePageComponent implements OnInit {
     }
   }
 
+  // НОВОЕ: дата+время (для комментариев)
+  protected formatDateTime(dateString: string | undefined | null): string {
+    if (!dateString) return 'Время не указано';
+    try {
+      return new Date(dateString).toLocaleString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (e) {
+      console.error('Error formatting datetime:', e);
+      return 'Время не указано';
+    }
+  }
+
   protected getPostExcerpt(content: string | null | undefined): string {
     if (!content) return '';
     const plainText = content.replace(/<[^>]*>/g, '');
@@ -493,5 +547,292 @@ export class HomePageComponent implements OnInit {
 
   protected set currentPageValue(value: number) {
     this.currentPage.set(value);
+  }
+
+  // =========================
+  // Комментарии: UI helpers (НОВОЕ)
+  // =========================
+  protected isCommentsExpanded(postId: string | null | undefined): boolean {
+    if (!postId) return false;
+    return this.commentsExpandedByPostId()[postId] ?? false;
+  }
+
+  protected isCommentsLoading(postId: string | null | undefined): boolean {
+    if (!postId) return false;
+    return this.commentsLoadingByPostId()[postId] ?? false;
+  }
+
+  protected getCommentsError(postId: string | null | undefined): string | null {
+    if (!postId) return null;
+    return this.commentsErrorByPostId()[postId] ?? null;
+  }
+
+  protected getCommentsForPost(postId: string | null | undefined): CommentModel[] {
+    if (!postId) return [];
+    return this.commentsByPostId()[postId] ?? [];
+  }
+
+  protected getCommentsCount(postId: string | null | undefined): number {
+    if (!postId) return 0;
+    const cached = this.commentsByPostId()[postId];
+    return cached ? cached.length : 0;
+  }
+
+  protected getNewCommentContent(postId: string | null | undefined): string {
+    if (!postId) return '';
+    return this.newCommentContentByPostId()[postId] ?? '';
+  }
+
+  protected setNewCommentContent(postId: string, value: string): void {
+    if (!postId) return;
+    const map = { ...this.newCommentContentByPostId() };
+    map[postId] = value;
+    this.newCommentContentByPostId.set(map);
+  }
+
+  protected canManageComment(comment: CommentModel): boolean {
+    const me = this.currentUser();
+    if (!me?.id) return false;
+    return comment.authorId === me.id;
+  }
+
+  protected isEditing(commentId: string | null | undefined): boolean {
+    if (!commentId) return false;
+    return this.editingCommentId() === commentId;
+  }
+
+  protected startEditComment(comment: CommentModel, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!comment.id) return;
+    if (!this.canManageComment(comment)) return;
+
+    this.editingCommentId.set(comment.id);
+    this.editingCommentContent.set(comment.content ?? '');
+    console.log('[comments] startEditComment', { commentId: comment.id });
+  }
+
+  protected cancelEditComment(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    console.log('[comments] cancelEditComment', { commentId: this.editingCommentId() });
+    this.editingCommentId.set(null);
+    this.editingCommentContent.set('');
+  }
+
+  protected async toggleCommentsForPost(postId: string | null | undefined, event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!postId) return;
+
+    const expanded = this.isCommentsExpanded(postId);
+    const map = { ...this.commentsExpandedByPostId() };
+    map[postId] = !expanded;
+    this.commentsExpandedByPostId.set(map);
+
+    console.log('[comments] toggleCommentsForPost', { postId, expanded: !expanded });
+
+    if (!expanded) {
+      // раскрыли -> загружаем
+      await this.loadCommentsByPost(postId);
+    }
+  }
+
+  // =========================
+  // Комментарии: API calls (НОВОЕ)
+  // =========================
+  private setPostBool(mapSignal: ReturnType<typeof signal<StringMap<boolean>>>, postId: string, value: boolean): void {
+    const map = { ...mapSignal() };
+    map[postId] = value;
+    mapSignal.set(map);
+  }
+
+  private setPostError(postId: string, value: string | null): void {
+    const map = { ...this.commentsErrorByPostId() };
+    map[postId] = value;
+    this.commentsErrorByPostId.set(map);
+  }
+
+  private async loadCommentsByPost(postId: string): Promise<void> {
+    console.log('[comments] loadCommentsByPost start', { postId });
+
+    this.setPostBool(this.commentsLoadingByPostId, postId, true);
+    this.setPostError(postId, null);
+
+    try {
+      const url = `${this.apiConfig.rootUrl}/api/forum/v1/Comment/GetCommentsByPost/${postId}/post`;
+      const response = await lastValueFrom(
+        this.http.get<CommentModel[]>(url, this.getHttpOptionsWithAuth())
+      );
+
+      const comments = response ?? [];
+      console.log('[comments] loadCommentsByPost success', { postId, count: comments.length });
+
+      const cache = { ...this.commentsByPostId() };
+      cache[postId] = comments;
+      this.commentsByPostId.set(cache);
+
+      // Подгружаем логины авторов
+      const authorIds = Array.from(
+        new Set(comments.map(c => c.authorId).filter((x): x is string => !!x))
+      );
+      await this.preloadUserNames(authorIds);
+
+    } catch (e) {
+      console.error('[comments] loadCommentsByPost error', e);
+      this.setPostError(postId, 'Не удалось загрузить комментарии');
+    } finally {
+      this.setPostBool(this.commentsLoadingByPostId, postId, false);
+    }
+  }
+
+  protected async createComment(postId: string | null | undefined, event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!postId) return;
+
+    const me = this.currentUser();
+    if (!me) {
+      this.setPostError(postId, 'Чтобы комментировать — войдите в аккаунт');
+      return;
+    }
+
+    const content = (this.getNewCommentContent(postId) ?? '').trim();
+    if (!content) {
+      this.setPostError(postId, 'Комментарий не может быть пустым');
+      return;
+    }
+
+    const body: CreateCommentCommand = {
+      postId,
+      content,
+    };
+
+    console.log('[comments] createComment start', { postId, contentLength: content.length });
+
+    try {
+      const url = `${this.apiConfig.rootUrl}/api/forum/v1/Comment/CreateComment`;
+      await lastValueFrom(this.http.post(url, body, this.getHttpOptionsWithAuth()));
+      console.log('[comments] createComment success', { postId });
+
+      // очистить поле
+      this.setNewCommentContent(postId, '');
+
+      // перезагрузить список
+      await this.loadCommentsByPost(postId);
+    } catch (e) {
+      console.error('[comments] createComment error', e);
+      this.setPostError(postId, 'Не удалось добавить комментарий');
+    }
+  }
+
+  protected async saveEditedComment(comment: CommentModel, postId: string | null | undefined, event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!postId) return;
+    if (!comment.id) return;
+    if (!this.canManageComment(comment)) return;
+
+    const content = (this.editingCommentContent() ?? '').trim();
+    if (!content) {
+      this.setPostError(postId, 'Комментарий не может быть пустым');
+      return;
+    }
+
+    const body: UpdateCommentCommand = {
+      id: comment.id,
+      content,
+    };
+
+    console.log('[comments] updateComment start', { commentId: comment.id, postId, contentLength: content.length });
+
+    try {
+      const url = `${this.apiConfig.rootUrl}/api/forum/v1/Comment/UpdateComment`;
+      await lastValueFrom(this.http.patch(url, body, this.getHttpOptionsWithAuth()));
+      console.log('[comments] updateComment success', { commentId: comment.id });
+
+      this.editingCommentId.set(null);
+      this.editingCommentContent.set('');
+
+      await this.loadCommentsByPost(postId);
+    } catch (e) {
+      console.error('[comments] updateComment error', e);
+      this.setPostError(postId, 'Не удалось обновить комментарий');
+    }
+  }
+
+  protected async deleteComment(comment: CommentModel, postId: string | null | undefined, event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!postId) return;
+    if (!comment.id) return;
+    if (!this.canManageComment(comment)) return;
+
+    const ok = confirm('Удалить комментарий?');
+    if (!ok) return;
+
+    const body: DeleteCommentCommand = { id: comment.id };
+
+    console.log('[comments] deleteComment start', { commentId: comment.id, postId });
+
+    try {
+      const url = `${this.apiConfig.rootUrl}/api/forum/v1/Comment/DeleteComment`;
+      await lastValueFrom(
+        this.http.request('delete', url, {
+          ...this.getHttpOptionsWithAuth(),
+          body,
+        })
+      );
+
+      console.log('[comments] deleteComment success', { commentId: comment.id });
+      await this.loadCommentsByPost(postId);
+    } catch (e) {
+      console.error('[comments] deleteComment error', e);
+      this.setPostError(postId, 'Не удалось удалить комментарий');
+    }
+  }
+
+  // =========================
+  // Identity: логины авторов (НОВОЕ)
+  // =========================
+  protected getAuthorLogin(authorId: string | null | undefined): string {
+    if (!authorId) return 'unknown';
+    return this.userNameById()[authorId] ?? `Пользователь ${authorId.substring(0, 8)}`;
+  }
+
+  protected getInitials(text: string | null | undefined): string {
+    const value = (text ?? '').trim();
+    if (!value) return 'U';
+    return value.substring(0, 2).toUpperCase();
+  }
+
+  private async preloadUserNames(userIds: string[]): Promise<void> {
+    for (const id of userIds) {
+      if (!id) continue;
+      if (this.userNameById()[id]) continue;
+
+      try {
+        const url = `${this.apiConfig.rootUrl}/api/identity/Users/${id}`;
+        const user = await lastValueFrom(this.http.get<UserDto>(url, this.getHttpOptionsWithAuth()));
+        const login = user?.userName ?? `Пользователь ${id.substring(0, 8)}`;
+
+        const map = { ...this.userNameById() };
+        map[id] = login;
+        this.userNameById.set(map);
+
+        console.log('[identity] cached userName', { id, login });
+      } catch (e) {
+        console.error('[identity] getUserById error', { id, e });
+        const map = { ...this.userNameById() };
+        map[id] = `Пользователь ${id.substring(0, 8)}`;
+        this.userNameById.set(map);
+      }
+    }
   }
 }

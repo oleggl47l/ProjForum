@@ -424,20 +424,173 @@
                   <!-- Футер поста -->
                   <div class="post-footer">
                     <div class="post-stats">
-                      <span
-                        class="stat"
-                        tabindex="0"
-                      >
+                      <span class="stat" tabindex="0">
                         0 просмотров
                       </span>
-                      <span
-                        class="stat"
-                        tabindex="0"
-                      >
+
+                      <span class="stat" tabindex="0">
                         <span class="stat-icon">💬</span>
-                        0 комментариев
+                        {{ getCommentsCount(post.id) }} комментариев
                       </span>
+
+                      <button
+                        tuiButton
+                        size="s"
+                        type="button"
+                        (click)="toggleCommentsForPost(post.id, $event)"
+                        (keyup.enter)="toggleCommentsForPost(post.id, $event)"
+                        style="margin-left: auto;"
+                        aria-label="Показать/скрыть комментарии"
+                      >
+                        @if (isCommentsExpanded(post.id)) {
+                          Скрыть
+                        } @else {
+                          Комментарии
+                        }
+                      </button>
                     </div>
+                  </div>
+
+                  <!-- ========================= -->
+                  <!-- Комментарии (НОВОЕ)       -->
+                  <!-- ========================= -->
+                  <div
+                    style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #333;"
+                    (click)="$event.preventDefault(); $event.stopPropagation();"
+                  >
+                    @if (isCommentsExpanded(post.id)) {
+                      @if (getCommentsError(post.id)) {
+                        <div style="color: #ff8888; margin-bottom: 0.75rem;">
+                          {{ getCommentsError(post.id) }}
+                        </div>
+                      }
+
+                      @if (isCommentsLoading(post.id)) {
+                        <div style="display: flex; gap: 0.75rem; align-items: center;">
+                          <tui-loader></tui-loader>
+                          <div>Загрузка комментариев...</div>
+                        </div>
+                      } @else {
+                        <!-- Форма добавления -->
+                        <div style="background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+                          <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem; color: rgba(255,255,255,0.75); font-size: 0.9rem;">
+                            <div>Автор: <strong>{{ currentUser()?.userName || 'Гость' }}</strong></div>
+                            <div>Время: <strong>{{ formatDateTime(nowIso) }}</strong></div>
+                          </div>
+
+                          <textarea
+                            class="search-input"
+                            [ngModel]="getNewCommentContent(post.id)"
+                            (ngModelChange)="setNewCommentContent(post.id || '', $event)"
+                            placeholder="Напишите комментарий..."
+                            rows="3"
+                            style="width: 100%; resize: vertical; border-radius: 12px;"
+                            aria-label="Текст комментария"
+                          ></textarea>
+
+                          <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.75rem;">
+                            <button
+                              tuiButton
+                              size="s"
+                              type="button"
+                              (click)="createComment(post.id, $event)"
+                              (keyup.enter)="createComment(post.id, $event)"
+                              [disabled]="!currentUser()"
+                            >
+                              Отправить
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Список комментариев -->
+                        @if (getCommentsForPost(post.id).length === 0) {
+                          <div style="color: rgba(255,255,255,0.7); padding: 0.5rem 0;">
+                            Пока нет комментариев.
+                          </div>
+                        } @else {
+                          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            @for (comment of getCommentsForPost(post.id); track comment.id) {
+                              <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 0.75rem 1rem;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+                                  <div style="display: flex; align-items: center; gap: 0.75rem; min-width: 0;">
+                                    <tui-avatar aria-hidden="true">
+                                      {{ getInitials(getAuthorLogin(comment.authorId)) }}
+                                    </tui-avatar>
+
+                                    <div style="min-width: 0;">
+                                      <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ getAuthorLogin(comment.authorId) }}
+                                      </div>
+                                      <div style="font-size: 0.85rem; color: rgba(255,255,255,0.65);">
+                                        {{ formatDateTime(comment.createdAt) }}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  @if (canManageComment(comment)) {
+                                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                      @if (!isEditing(comment.id)) {
+                                        <button tuiButton size="s" type="button" (click)="startEditComment(comment, $event)">
+                                          Редактировать
+                                        </button>
+                                        <button tuiButton size="s" type="button" (click)="deleteComment(comment, post.id, $event)">
+                                          Удалить
+                                        </button>
+                                      }
+                                    </div>
+                                  }
+                                </div>
+
+                                <div style="margin-top: 0.75rem;">
+                                  @if (isEditing(comment.id)) {
+                                    <textarea
+                                      class="search-input"
+                                      [ngModel]="editingCommentContent()"
+                                      (ngModelChange)="editingCommentContent.set($event)"
+                                      rows="3"
+                                      style="width: 100%; resize: vertical; border-radius: 12px;"
+                                      aria-label="Редактирование комментария"
+                                    ></textarea>
+
+                                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.75rem;">
+                                      <button
+                                        tuiButton
+                                        size="s"
+                                        type="button"
+                                        (click)="saveEditedComment(comment, post.id, $event)"
+                                        (keyup.enter)="saveEditedComment(comment, post.id, $event)"
+                                      >
+                                        Сохранить
+                                      </button>
+
+                                      <button
+                                        tuiButton
+                                        size="s"
+                                        type="button"
+                                        (click)="cancelEditComment($event)"
+                                        (keyup.enter)="cancelEditComment($event)"
+                                      >
+                                        Отмена
+                                      </button>
+                                    </div>
+                                  } @else {
+                                    <div style="white-space: pre-wrap; color: rgba(255,255,255,0.9);">
+                                      {{ comment.content }}
+                                    </div>
+
+                                    @if (comment.updatedAt && comment.updatedAt !== comment.createdAt) {
+                                      <div style="margin-top: 0.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.55);">
+                                        Изменено: {{ formatDateTime(comment.updatedAt) }}
+                                      </div>
+                                    }
+                                  }
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        }
+                      }
+                    }
                   </div>
                 </div>
               </a>
@@ -467,3 +620,4 @@
     (postCreated)="onPostCreated($event)"
   ></app-create-post-dialog>
 </div>
+
