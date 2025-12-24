@@ -39,9 +39,9 @@ public class DatabaseSeeder(
         var usersToSeed = new[]
         {
             new { Email = "admin@forum.com", UserName = "admin", Password = "Admin123!", Role = "Admin" },
-            new { Email = "moderator@forum.com", UserName = "moderator", Password = "Moder123!", Role = "Moderator" },
+            new { Email = "moderator@forum.com", UserName = "moderator", Password = "Moderator123!", Role = "Moderator" },
             new { Email = "user@forum.com", UserName = "user", Password = "User123!", Role = "User" },
-            new { Email = "test@forum.com", UserName = "testuser", Password = "Test123!", Role = "User" }
+            new { Email = "test@forum.com", UserName = "test", Password = "Test123!", Role = "User" }
         };
 
         foreach (var userInfo in usersToSeed)
